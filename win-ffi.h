@@ -125,45 +125,45 @@ extern "C" {
 #ifndef LIBFFI_ASM
 #ifdef X86_WIN64
 #ifdef _MSC_VER
-typedef unsigned __int64       ffi_arg;
-typedef __int64                ffi_sarg;
+    typedef unsigned __int64       ffi_arg;
+    typedef __int64                ffi_sarg;
 #else
-typedef unsigned long long     ffi_arg;
-typedef long long              ffi_sarg;
+    typedef unsigned long long     ffi_arg;
+    typedef long long              ffi_sarg;
 #endif
 #else
-typedef unsigned long          ffi_arg;
-typedef signed long            ffi_sarg;
+    typedef unsigned long          ffi_arg;
+    typedef signed long            ffi_sarg;
 #endif
 
-typedef enum ffi_abi {
-  FFI_FIRST_ABI = 0,
+    typedef enum ffi_abi {
+        FFI_FIRST_ABI = 0,
 
-  /* ---- Intel x86 Win32 ---------- */
+        /* ---- Intel x86 Win32 ---------- */
 #ifdef X86_WIN32
-  FFI_SYSV,
-  FFI_STDCALL,
-  FFI_LAST_ABI,
-  /* TODO: Add fastcall support for the sake of completeness */
-  FFI_DEFAULT_ABI = FFI_SYSV
+        FFI_SYSV,
+        FFI_STDCALL,
+        FFI_LAST_ABI,
+        /* TODO: Add fastcall support for the sake of completeness */
+        FFI_DEFAULT_ABI = FFI_SYSV
 
 #elif defined(X86_WIN64)
-  FFI_WIN64,
-  FFI_LAST_ABI,
-  FFI_DEFAULT_ABI = FFI_WIN64
+        FFI_WIN64,
+        FFI_LAST_ABI,
+        FFI_DEFAULT_ABI = FFI_WIN64
 
 #else
-  /* ---- Intel x86 and AMD x86-64 - */
-  FFI_SYSV,
-  FFI_UNIX64,   /* Unix variants all use the same ABI for x86-64  */
-  FFI_LAST_ABI,
+        /* ---- Intel x86 and AMD x86-64 - */
+        FFI_SYSV,
+        FFI_UNIX64,   /* Unix variants all use the same ABI for x86-64  */
+        FFI_LAST_ABI,
 #if defined(__i386__) || defined(__i386)
-  FFI_DEFAULT_ABI = FFI_SYSV
+        FFI_DEFAULT_ABI = FFI_SYSV
 #else
-  FFI_DEFAULT_ABI = FFI_UNIX64
+        FFI_DEFAULT_ABI = FFI_UNIX64
 #endif
 #endif
-} ffi_abi;
+    } ffi_abi;
 #endif
 
 /* ---- Definitions for closures ----------------------------------------- */
@@ -195,7 +195,7 @@ typedef enum ffi_abi {
 
 #endif
 
-/* ============================== eof ffitarget.h ======================== */
+      /* ============================== eof ffitarget.h ======================== */
 
 #ifndef LIBFFI_ASM
 
@@ -240,20 +240,20 @@ typedef enum ffi_abi {
 /* The closure code assumes that this works on pointers, i.e. a size_t	*/
 /* can hold a pointer.							*/
 
-typedef struct _ffi_type
-{
-  size_t size;
-  unsigned short alignment;
-  unsigned short type;
-  struct _ffi_type **elements;
-} ffi_type;
+    typedef struct _ffi_type
+    {
+        size_t size;
+        unsigned short alignment;
+        unsigned short type;
+        struct _ffi_type **elements;
+    } ffi_type;
 
 #ifndef LIBFFI_HIDE_BASIC_TYPES
 #if SCHAR_MAX == 127
 # define ffi_type_uchar                ffi_type_uint8
 # define ffi_type_schar                ffi_type_sint8
 #else
- #error "char size not supported"
+#error "char size not supported"
 #endif
 
 #if SHRT_MAX == 32767
@@ -263,7 +263,7 @@ typedef struct _ffi_type
 # define ffi_type_ushort       ffi_type_uint32
 # define ffi_type_sshort       ffi_type_sint32
 #else
- #error "short size not supported"
+#error "short size not supported"
 #endif
 
 #if INT_MAX == 32767
@@ -276,15 +276,15 @@ typedef struct _ffi_type
 # define ffi_type_uint         ffi_type_uint64
 # define ffi_type_sint         ffi_type_sint64
 #else
- #error "int size not supported"
+#error "int size not supported"
 #endif
 
 #if LONG_MAX == 2147483647
 # if FFI_LONG_LONG_MAX != FFI_64_BIT_MAX
- #error "no 64-bit data type supported"
+#error "no 64-bit data type supported"
 # endif
 #elif LONG_MAX != FFI_64_BIT_MAX
- #error "long size not supported"
+#error "long size not supported"
 #endif
 
 #if LONG_MAX == 2147483647
@@ -294,49 +294,49 @@ typedef struct _ffi_type
 # define ffi_type_ulong        ffi_type_uint64
 # define ffi_type_slong        ffi_type_sint64
 #else
- #error "long size not supported"
+#error "long size not supported"
 #endif
 
 /* These are defined in types.c */
-extern ffi_type ffi_type_void;
-extern ffi_type ffi_type_uint8;
-extern ffi_type ffi_type_sint8;
-extern ffi_type ffi_type_uint16;
-extern ffi_type ffi_type_sint16;
-extern ffi_type ffi_type_uint32;
-extern ffi_type ffi_type_sint32;
-extern ffi_type ffi_type_uint64;
-extern ffi_type ffi_type_sint64;
-extern ffi_type ffi_type_float;
-extern ffi_type ffi_type_double;
-extern ffi_type ffi_type_pointer;
+    extern ffi_type ffi_type_void;
+    extern ffi_type ffi_type_uint8;
+    extern ffi_type ffi_type_sint8;
+    extern ffi_type ffi_type_uint16;
+    extern ffi_type ffi_type_sint16;
+    extern ffi_type ffi_type_uint32;
+    extern ffi_type ffi_type_sint32;
+    extern ffi_type ffi_type_uint64;
+    extern ffi_type ffi_type_sint64;
+    extern ffi_type ffi_type_float;
+    extern ffi_type ffi_type_double;
+    extern ffi_type ffi_type_pointer;
 
 #if 1
-extern ffi_type ffi_type_longdouble;
+    extern ffi_type ffi_type_longdouble;
 #else
 #define ffi_type_longdouble ffi_type_double
 #endif
 #endif /* LIBFFI_HIDE_BASIC_TYPES */
 
-typedef enum {
-  FFI_OK = 0,
-  FFI_BAD_TYPEDEF,
-  FFI_BAD_ABI
-} ffi_status;
+    typedef enum {
+        FFI_OK = 0,
+        FFI_BAD_TYPEDEF,
+        FFI_BAD_ABI
+    } ffi_status;
 
-typedef unsigned FFI_TYPE;
+    typedef unsigned FFI_TYPE;
 
-typedef struct {
-  ffi_abi abi;
-  unsigned nargs;
-  ffi_type **arg_types;
-  ffi_type *rtype;
-  unsigned bytes;
-  unsigned flags;
+    typedef struct {
+        ffi_abi abi;
+        unsigned nargs;
+        ffi_type **arg_types;
+        ffi_type *rtype;
+        unsigned bytes;
+        unsigned flags;
 #ifdef FFI_EXTRA_CIF_FIELDS
-  FFI_EXTRA_CIF_FIELDS;
+        FFI_EXTRA_CIF_FIELDS;
 #endif
-} ffi_cif;
+    } ffi_cif;
 
 /* ---- Definitions for the raw API -------------------------------------- */
 
@@ -352,65 +352,65 @@ typedef struct {
 #  define FFI_SIZEOF_JAVA_RAW FFI_SIZEOF_ARG
 #endif
 
-typedef union {
-  ffi_sarg  sint;
-  ffi_arg   uint;
-  float	    flt;
-  char      data[FFI_SIZEOF_ARG];
-  void*     ptr;
-} ffi_raw;
+    typedef union {
+        ffi_sarg  sint;
+        ffi_arg   uint;
+        float	    flt;
+        char      data[FFI_SIZEOF_ARG];
+        void*     ptr;
+    } ffi_raw;
 
 #if FFI_SIZEOF_JAVA_RAW == 4 && FFI_SIZEOF_ARG == 8
 /* This is a special case for mips64/n32 ABI (and perhaps others) where
    sizeof(void *) is 4 and FFI_SIZEOF_ARG is 8.  */
-typedef union {
-  signed int	sint;
-  unsigned int	uint;
-  float		flt;
-  char		data[FFI_SIZEOF_JAVA_RAW];
-  void*		ptr;
-} ffi_java_raw;
+    typedef union {
+        signed int	sint;
+        unsigned int	uint;
+        float		flt;
+        char		data[FFI_SIZEOF_JAVA_RAW];
+        void*		ptr;
+    } ffi_java_raw;
 #else
-typedef ffi_raw ffi_java_raw;
+    typedef ffi_raw ffi_java_raw;
 #endif
 
 
-void ffi_raw_call (ffi_cif *cif,
-		   void (*fn)(void),
-		   void *rvalue,
-		   ffi_raw *avalue);
+    void ffi_raw_call (ffi_cif *cif,
+                       void (*fn)(void),
+                       void *rvalue,
+                       ffi_raw *avalue);
 
-void ffi_ptrarray_to_raw (ffi_cif *cif, void **args, ffi_raw *raw);
-void ffi_raw_to_ptrarray (ffi_cif *cif, ffi_raw *raw, void **args);
-size_t ffi_raw_size (ffi_cif *cif);
+    void ffi_ptrarray_to_raw (ffi_cif *cif, void **args, ffi_raw *raw);
+    void ffi_raw_to_ptrarray (ffi_cif *cif, ffi_raw *raw, void **args);
+    size_t ffi_raw_size (ffi_cif *cif);
 
 /* This is analogous to the raw API, except it uses Java parameter	*/
 /* packing, even on 64-bit machines.  I.e. on 64-bit machines		*/
 /* longs and doubles are followed by an empty 64-bit word.		*/
 
-void ffi_java_raw_call (ffi_cif *cif,
-			void (*fn)(void),
-			void *rvalue,
-			ffi_java_raw *avalue);
+    void ffi_java_raw_call (ffi_cif *cif,
+                            void (*fn)(void),
+                            void *rvalue,
+                            ffi_java_raw *avalue);
 
-void ffi_java_ptrarray_to_raw (ffi_cif *cif, void **args, ffi_java_raw *raw);
-void ffi_java_raw_to_ptrarray (ffi_cif *cif, ffi_java_raw *raw, void **args);
-size_t ffi_java_raw_size (ffi_cif *cif);
+    void ffi_java_ptrarray_to_raw (ffi_cif *cif, void **args, ffi_java_raw *raw);
+    void ffi_java_raw_to_ptrarray (ffi_cif *cif, ffi_java_raw *raw, void **args);
+    size_t ffi_java_raw_size (ffi_cif *cif);
 
 /* ---- Definitions for closures ----------------------------------------- */
 
 #if FFI_CLOSURES
 
 #ifdef _MSC_VER
-__declspec(align(8))
+    __declspec(align(8))
 #endif
-typedef struct {
-  char tramp[FFI_TRAMPOLINE_SIZE];
-  ffi_cif   *cif;
-  void     (*fun)(ffi_cif*,void*,void**,void*);
-  void      *user_data;
+    typedef struct {
+        char tramp[FFI_TRAMPOLINE_SIZE];
+        ffi_cif   *cif;
+        void     (*fun)(ffi_cif*,void*,void**,void*);
+        void      *user_data;
 #ifdef __GNUC__
-} ffi_closure __attribute__((aligned (8)));
+    } ffi_closure __attribute__((aligned (8)));
 #else
 } ffi_closure;
 # ifdef __sgi
@@ -423,102 +423,102 @@ void ffi_closure_free (void *);
 
 ffi_status
 ffi_prep_closure (ffi_closure*,
-		  ffi_cif *,
-		  void (*fun)(ffi_cif*,void*,void**,void*),
-		  void *user_data);
+                  ffi_cif *,
+                  void (*fun)(ffi_cif*,void*,void**,void*),
+                  void *user_data);
 
 ffi_status
 ffi_prep_closure_loc (ffi_closure*,
-		      ffi_cif *,
-		      void (*fun)(ffi_cif*,void*,void**,void*),
-		      void *user_data,
-		      void*codeloc);
+                      ffi_cif *,
+                      void (*fun)(ffi_cif*,void*,void**,void*),
+                      void *user_data,
+                      void*codeloc);
 
 #ifdef __sgi
 # pragma pack 8
 #endif
 typedef struct {
-  char tramp[FFI_TRAMPOLINE_SIZE];
+    char tramp[FFI_TRAMPOLINE_SIZE];
 
-  ffi_cif   *cif;
+    ffi_cif   *cif;
 
 #if !FFI_NATIVE_RAW_API
 
-  /* if this is enabled, then a raw closure has the same layout 
-     as a regular closure.  We use this to install an intermediate 
-     handler to do the transaltion, void** -> ffi_raw*. */
+    /* if this is enabled, then a raw closure has the same layout 
+       as a regular closure.  We use this to install an intermediate 
+       handler to do the transaltion, void** -> ffi_raw*. */
 
-  void     (*translate_args)(ffi_cif*,void*,void**,void*);
-  void      *this_closure;
+    void     (*translate_args)(ffi_cif*,void*,void**,void*);
+    void      *this_closure;
 
 #endif
 
-  void     (*fun)(ffi_cif*,void*,ffi_raw*,void*);
-  void      *user_data;
+    void     (*fun)(ffi_cif*,void*,ffi_raw*,void*);
+    void      *user_data;
 
 } ffi_raw_closure;
 
 typedef struct {
-  char tramp[FFI_TRAMPOLINE_SIZE];
+    char tramp[FFI_TRAMPOLINE_SIZE];
 
-  ffi_cif   *cif;
+    ffi_cif   *cif;
 
 #if !FFI_NATIVE_RAW_API
 
-  /* if this is enabled, then a raw closure has the same layout 
-     as a regular closure.  We use this to install an intermediate 
-     handler to do the transaltion, void** -> ffi_raw*. */
+    /* if this is enabled, then a raw closure has the same layout 
+       as a regular closure.  We use this to install an intermediate 
+       handler to do the transaltion, void** -> ffi_raw*. */
 
-  void     (*translate_args)(ffi_cif*,void*,void**,void*);
-  void      *this_closure;
+    void     (*translate_args)(ffi_cif*,void*,void**,void*);
+    void      *this_closure;
 
 #endif
 
-  void     (*fun)(ffi_cif*,void*,ffi_java_raw*,void*);
-  void      *user_data;
+    void     (*fun)(ffi_cif*,void*,ffi_java_raw*,void*);
+    void      *user_data;
 
 } ffi_java_raw_closure;
 
 ffi_status
 ffi_prep_raw_closure (ffi_raw_closure*,
-		      ffi_cif *cif,
-		      void (*fun)(ffi_cif*,void*,ffi_raw*,void*),
-		      void *user_data);
+                      ffi_cif *cif,
+                      void (*fun)(ffi_cif*,void*,ffi_raw*,void*),
+                      void *user_data);
 
 ffi_status
 ffi_prep_raw_closure_loc (ffi_raw_closure*,
-			  ffi_cif *cif,
-			  void (*fun)(ffi_cif*,void*,ffi_raw*,void*),
-			  void *user_data,
-			  void *codeloc);
+                          ffi_cif *cif,
+                          void (*fun)(ffi_cif*,void*,ffi_raw*,void*),
+                          void *user_data,
+                          void *codeloc);
 
 ffi_status
 ffi_prep_java_raw_closure (ffi_java_raw_closure*,
-		           ffi_cif *cif,
-		           void (*fun)(ffi_cif*,void*,ffi_java_raw*,void*),
-		           void *user_data);
+                           ffi_cif *cif,
+                           void (*fun)(ffi_cif*,void*,ffi_java_raw*,void*),
+                           void *user_data);
 
 ffi_status
 ffi_prep_java_raw_closure_loc (ffi_java_raw_closure*,
-			       ffi_cif *cif,
-			       void (*fun)(ffi_cif*,void*,ffi_java_raw*,void*),
-			       void *user_data,
-			       void *codeloc);
+                               ffi_cif *cif,
+                               void (*fun)(ffi_cif*,void*,ffi_java_raw*,void*),
+                               void *user_data,
+                               void *codeloc);
 
 #endif /* FFI_CLOSURES */
 
 /* ---- Public interface definition -------------------------------------- */
 
 ffi_status ffi_prep_cif(ffi_cif *cif,
-			ffi_abi abi,
-			unsigned int nargs,
-			ffi_type *rtype,
-			ffi_type **atypes);
+                        ffi_abi abi,
+                        unsigned int nargs,
+                        ffi_type *rtype,
+                        ffi_type **atypes);
 
 void ffi_call(ffi_cif *cif,
-	      void (*fn)(void),
-	      void *rvalue,
-	      void **avalue);
+              void (*fn)(void),
+              void *rvalue,
+              void **avalue);
 
 /* Useful for eliminating compiler warnings */
 #define FFI_FN(f) ((void (*)(void))f)

@@ -1,46 +1,46 @@
 /*************************************************
-*       Perl-Compatible Regular Expressions      *
-*************************************************/
+ *       Perl-Compatible Regular Expressions      *
+ *************************************************/
 
 /* In its original form, this is the .in file that is transformed by
-"configure" into pcre.h.
+   "configure" into pcre.h.
 
-           Copyright (c) 1997-2004 University of Cambridge
+   Copyright (c) 1997-2004 University of Cambridge
 
------------------------------------------------------------------------------
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+   -----------------------------------------------------------------------------
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+   * Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
 
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
+   * Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
 
-    * Neither the name of the University of Cambridge nor the names of its
-      contributors may be used to endorse or promote products derived from
-      this software without specific prior written permission.
+   * Neither the name of the University of Cambridge nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
------------------------------------------------------------------------------
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+   POSSIBILITY OF SUCH DAMAGE.
+   -----------------------------------------------------------------------------
 */
 
 #ifndef _PCRE_H
 #define _PCRE_H
 
 /* The file pcre.h is build by "configure". Do not edit it; instead
-make changes to pcre.in. */
+   make changes to pcre.in. */
 
 #define PCRE_MAJOR          5
 #define PCRE_MINOR          0
@@ -64,7 +64,7 @@ make changes to pcre.in. */
 #endif
 
 /* Have to include stdlib.h in order to ensure that size_t is defined;
-it is needed here for malloc. */
+   it is needed here for malloc. */
 
 #include <stdlib.h>
 
@@ -146,91 +146,91 @@ extern "C" {
 
 /* Types */
 
-struct real_pcre;                 /* declaration; the definition is private  */
-typedef struct real_pcre pcre;
+    struct real_pcre;                 /* declaration; the definition is private  */
+    typedef struct real_pcre pcre;
 
 /* The structure for passing additional data to pcre_exec(). This is defined in
-such as way as to be extensible. Always add new fields at the end, in order to
-remain compatible. */
+   such as way as to be extensible. Always add new fields at the end, in order to
+   remain compatible. */
 
-typedef struct pcre_extra {
-  unsigned long int flags;        /* Bits for which fields are set */
-  void *study_data;               /* Opaque data from pcre_study() */
-  unsigned long int match_limit;  /* Maximum number of calls to match() */
-  void *callout_data;             /* Data passed back in callouts */
-  const unsigned char *tables;    /* Pointer to character tables */
-} pcre_extra;
+    typedef struct pcre_extra {
+        unsigned long int flags;        /* Bits for which fields are set */
+        void *study_data;               /* Opaque data from pcre_study() */
+        unsigned long int match_limit;  /* Maximum number of calls to match() */
+        void *callout_data;             /* Data passed back in callouts */
+        const unsigned char *tables;    /* Pointer to character tables */
+    } pcre_extra;
 
 /* The structure for passing out data via the pcre_callout_function. We use a
-structure so that new fields can be added on the end in future versions,
-without changing the API of the function, thereby allowing old clients to work
-without modification. */
+   structure so that new fields can be added on the end in future versions,
+   without changing the API of the function, thereby allowing old clients to work
+   without modification. */
 
-typedef struct pcre_callout_block {
-  int          version;           /* Identifies version of block */
-  /* ------------------------ Version 0 ------------------------------- */
-  int          callout_number;    /* Number compiled into pattern */
-  int         *offset_vector;     /* The offset vector */
-  const char  *subject;           /* The subject being matched */
-  int          subject_length;    /* The length of the subject */
-  int          start_match;       /* Offset to start of this match attempt */
-  int          current_position;  /* Where we currently are in the subject */
-  int          capture_top;       /* Max current capture */
-  int          capture_last;      /* Most recently closed capture */
-  void        *callout_data;      /* Data passed in with the call */
-  /* ------------------- Added for Version 1 -------------------------- */
-  int          pattern_position;  /* Offset to next item in the pattern */
-  int          next_item_length;  /* Length of next item in the pattern */
-  /* ------------------------------------------------------------------ */
-} pcre_callout_block;
+    typedef struct pcre_callout_block {
+        int          version;           /* Identifies version of block */
+        /* ------------------------ Version 0 ------------------------------- */
+        int          callout_number;    /* Number compiled into pattern */
+        int         *offset_vector;     /* The offset vector */
+        const char  *subject;           /* The subject being matched */
+        int          subject_length;    /* The length of the subject */
+        int          start_match;       /* Offset to start of this match attempt */
+        int          current_position;  /* Where we currently are in the subject */
+        int          capture_top;       /* Max current capture */
+        int          capture_last;      /* Most recently closed capture */
+        void        *callout_data;      /* Data passed in with the call */
+        /* ------------------- Added for Version 1 -------------------------- */
+        int          pattern_position;  /* Offset to next item in the pattern */
+        int          next_item_length;  /* Length of next item in the pattern */
+        /* ------------------------------------------------------------------ */
+    } pcre_callout_block;
 
 /* Indirection for store get and free functions. These can be set to
-alternative malloc/free functions if required. Special ones are used in the
-non-recursive case for "frames". There is also an optional callout function
-that is triggered by the (?) regex item. Some magic is required for Win32 DLL;
-it is null on other OS. For Virtual Pascal, these have to be different again.
+   alternative malloc/free functions if required. Special ones are used in the
+   non-recursive case for "frames". There is also an optional callout function
+   that is triggered by the (?) regex item. Some magic is required for Win32 DLL;
+   it is null on other OS. For Virtual Pascal, these have to be different again.
 */
 
 #ifndef VPCOMPAT
-PCRE_DATA_SCOPE void *(*pcre_malloc)(size_t);
-PCRE_DATA_SCOPE void  (*pcre_free)(void *);
-PCRE_DATA_SCOPE void *(*pcre_stack_malloc)(size_t);
-PCRE_DATA_SCOPE void  (*pcre_stack_free)(void *);
-PCRE_DATA_SCOPE int   (*pcre_callout)(pcre_callout_block *);
+    PCRE_DATA_SCOPE void *(*pcre_malloc)(size_t);
+    PCRE_DATA_SCOPE void  (*pcre_free)(void *);
+    PCRE_DATA_SCOPE void *(*pcre_stack_malloc)(size_t);
+    PCRE_DATA_SCOPE void  (*pcre_stack_free)(void *);
+    PCRE_DATA_SCOPE int   (*pcre_callout)(pcre_callout_block *);
 #else   /* VPCOMPAT */
-extern void *pcre_malloc(size_t);
-extern void  pcre_free(void *);
-extern void *pcre_stack_malloc(size_t);
-extern void  pcre_stack_free(void *);
-extern int   pcre_callout(pcre_callout_block *);
+    extern void *pcre_malloc(size_t);
+    extern void  pcre_free(void *);
+    extern void *pcre_stack_malloc(size_t);
+    extern void  pcre_stack_free(void *);
+    extern int   pcre_callout(pcre_callout_block *);
 #endif  /* VPCOMPAT */
 
 /* Exported PCRE functions */
 
-extern pcre *pcre_compile(const char *, int, const char **,
-              int *, const unsigned char *);
-extern int  pcre_config(int, void *);
-extern int  pcre_copy_named_substring(const pcre *, const char *,
-              int *, int, const char *, char *, int);
-extern int  pcre_copy_substring(const char *, int *, int, int,
-              char *, int);
-extern int  pcre_exec(const pcre *, const pcre_extra *,
-              const char *, int, int, int, int *, int);
-extern void pcre_free_substring(const char *);
-extern void pcre_free_substring_list(const char **);
-extern int  pcre_fullinfo(const pcre *, const pcre_extra *, int,
-              void *);
-extern int  pcre_get_named_substring(const pcre *, const char *,
-              int *, int,  const char *, const char **);
-extern int  pcre_get_stringnumber(const pcre *, const char *);
-extern int  pcre_get_substring(const char *, int *, int, int,
-              const char **);
-extern int  pcre_get_substring_list(const char *, int *, int,
-              const char ***);
-extern int  pcre_info(const pcre *, int *, int *);
-extern const unsigned char *pcre_maketables(void);
-extern pcre_extra *pcre_study(const pcre *, int, const char **);
-extern const char *pcre_version(void);
+    extern pcre *pcre_compile(const char *, int, const char **,
+                              int *, const unsigned char *);
+    extern int  pcre_config(int, void *);
+    extern int  pcre_copy_named_substring(const pcre *, const char *,
+                                          int *, int, const char *, char *, int);
+    extern int  pcre_copy_substring(const char *, int *, int, int,
+                                    char *, int);
+    extern int  pcre_exec(const pcre *, const pcre_extra *,
+                          const char *, int, int, int, int *, int);
+    extern void pcre_free_substring(const char *);
+    extern void pcre_free_substring_list(const char **);
+    extern int  pcre_fullinfo(const pcre *, const pcre_extra *, int,
+                              void *);
+    extern int  pcre_get_named_substring(const pcre *, const char *,
+                                         int *, int,  const char *, const char **);
+    extern int  pcre_get_stringnumber(const pcre *, const char *);
+    extern int  pcre_get_substring(const char *, int *, int, int,
+                                   const char **);
+    extern int  pcre_get_substring_list(const char *, int *, int,
+                                        const char ***);
+    extern int  pcre_info(const pcre *, int *, int *);
+    extern const unsigned char *pcre_maketables(void);
+    extern pcre_extra *pcre_study(const pcre *, int, const char **);
+    extern const char *pcre_version(void);
 
 #ifdef __cplusplus
 }  /* extern "C" */

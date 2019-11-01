@@ -72,162 +72,162 @@ uint32_t max_rand = MY_RAND_MAX;
 #ifdef DEBUG
 void debug(int * x, int n, char * txt)
 {
-int i;
+    int i;
 
-printf("%s ", txt);
-for(i = 0; i <= n; i++)
-    printf("%d_", x[i]);
-printf("\n");
+    printf("%s ", txt);
+    for(i = 0; i <= n; i++)
+        printf("%d_", x[i]);
+    printf("\n");
 }
 #endif
 
 CELL * p_abs(CELL * params) 
 {  
-CELL * cell;
-INT64 intValue;
-double floatValue;
+    CELL * cell;
+    INT64 intValue;
+    double floatValue;
 #ifdef BIGINT
-int * numPtr;
+    int * numPtr;
 #endif
     
-cell = evaluateExpression(params);
+    cell = evaluateExpression(params);
 #ifdef BIGINT
-if(cell->type == CELL_BIGINT)
+    if(cell->type == CELL_BIGINT)
     {
-    cell = copyCell(cell);
-    numPtr = (int *)cell->contents;
-    if(*numPtr == -1) *numPtr = 1;
-    return(cell);
+        cell = copyCell(cell);
+        numPtr = (int *)cell->contents;
+        if(*numPtr == -1) *numPtr = 1;
+        return(cell);
     }
-else
+    else
 #endif 
-if(cell->type == CELL_FLOAT)
-    {
-    floatValue = getDirectFloat(cell);
-    if(floatValue < 0.0) floatValue = floatValue * -1.0;
-    return(stuffFloat(floatValue));
-    }
+        if(cell->type == CELL_FLOAT)
+        {
+            floatValue = getDirectFloat(cell);
+            if(floatValue < 0.0) floatValue = floatValue * -1.0;
+            return(stuffFloat(floatValue));
+        }
 
-getInteger64Ext(cell, &intValue, FALSE);
-if(intValue < 0) intValue = intValue * -1;
+    getInteger64Ext(cell, &intValue, FALSE);
+    if(intValue < 0) intValue = intValue * -1;
 
-return(stuffInteger64(intValue));
+    return(stuffInteger64(intValue));
 }
 
 CELL * incDecI(CELL * params, int type)
 {
-CELL * cell;
-INT64 adjust = 1;
-INT64 lValue = 0;
+    CELL * cell;
+    INT64 adjust = 1;
+    INT64 lValue = 0;
 #ifdef BIGINT
-int * lvaluePtr;
-int * adjustPtr;
-int * resultPtr;
-int * freePtr = NULL;
-int lvlen, adjlen, reslen;
+    int * lvaluePtr;
+    int * adjustPtr;
+    int * resultPtr;
+    int * freePtr = NULL;
+    int lvlen, adjlen, reslen;
 #endif
 
-cell = evaluateExpression(params);
+    cell = evaluateExpression(params);
 
-if(symbolCheck != NULL) 
+    if(symbolCheck != NULL) 
     {
-    if(isProtected(symbolCheck->flags))
-        return(errorProcExt2(ERR_SYMBOL_PROTECTED, stuffSymbol(symbolCheck)));
+        if(isProtected(symbolCheck->flags))
+            return(errorProcExt2(ERR_SYMBOL_PROTECTED, stuffSymbol(symbolCheck)));
     }
-else
+    else
     {
-    if(cell == nilCell)
-        errorProc(ERR_INVALID_PARAMETER);
+        if(cell == nilCell)
+            errorProc(ERR_INVALID_PARAMETER);
     }
 
 
-if(!isNil(cell)) 
+    if(!isNil(cell)) 
 #ifdef BIGINT
     {
-    if(cell->type == CELL_BIGINT)
+        if(cell->type == CELL_BIGINT)
         {
-        lvaluePtr = (int *)cell->contents;
-        lvlen = cell->aux - 1;
+            lvaluePtr = (int *)cell->contents;
+            lvlen = cell->aux - 1;
 
-        if(params->next != nilCell)
-            freePtr = getBigintSizeDirect(evaluateExpression(params->next) , &adjustPtr, &adjlen);
-        else
-            freePtr = adjustPtr = intToBigint(1, &adjlen);
+            if(params->next != nilCell)
+                freePtr = getBigintSizeDirect(evaluateExpression(params->next) , &adjustPtr, &adjlen);
+            else
+                freePtr = adjustPtr = intToBigint(1, &adjlen);
 
-        reslen = (lvlen > adjlen) ? lvlen + 2 : adjlen + 2;
-        resultPtr = calloc(reslen, sizeof(int));
-        if(type < 0)
-            subBigint(lvaluePtr, lvlen, adjustPtr, adjlen, resultPtr, &reslen);
-        else
-            addBigint(lvaluePtr, lvlen, adjustPtr, adjlen, resultPtr, &reslen);
-        if(freePtr) freeMemory(freePtr);
-        /* update old cell */
-        freeMemory((void *)cell->contents);
-        cell->contents = (UINT)resultPtr;
-        cell->aux = reslen + 1;
-        return(copyCell(cell));
+            reslen = (lvlen > adjlen) ? lvlen + 2 : adjlen + 2;
+            resultPtr = calloc(reslen, sizeof(int));
+            if(type < 0)
+                subBigint(lvaluePtr, lvlen, adjustPtr, adjlen, resultPtr, &reslen);
+            else
+                addBigint(lvaluePtr, lvlen, adjustPtr, adjlen, resultPtr, &reslen);
+            if(freePtr) freeMemory(freePtr);
+            /* update old cell */
+            freeMemory((void *)cell->contents);
+            cell->contents = (UINT)resultPtr;
+            cell->aux = reslen + 1;
+            return(copyCell(cell));
         }
-    getInteger64Ext(cell, &lValue, FALSE);
+        getInteger64Ext(cell, &lValue, FALSE);
     }
 #else
     getInteger64Ext(cell, &lValue, FALSE);
 #endif
     
 
-if(cell == nilCell) /* v. 10.7.1 */
+    if(cell == nilCell) /* v. 10.7.1 */
         errorProc(ERR_INVALID_PARAMETER);
 
-if(params->next != nilCell)
-    getInteger64Ext(params->next, &adjust, TRUE);
+    if(params->next != nilCell)
+        getInteger64Ext(params->next, &adjust, TRUE);
 
 
 #ifndef NEWLISP64
-cell->type = CELL_INT64;
-*(INT64 *)&cell->aux = lValue + adjust * type;
+    cell->type = CELL_INT64;
+    *(INT64 *)&cell->aux = lValue + adjust * type;
 #else
-cell->type = CELL_LONG;
-cell->contents = lValue + adjust * type;
+    cell->type = CELL_LONG;
+    cell->contents = lValue + adjust * type;
 #endif
 
-return(copyCell(cell));
+    return(copyCell(cell));
 }
 
 
 CELL * incDecF(CELL * params, int type)
 {
-CELL * cell;
-double adjust = 1.0;
-double lValue = 0.0;
+    CELL * cell;
+    double adjust = 1.0;
+    double lValue = 0.0;
 
-cell = evaluateExpression(params);
+    cell = evaluateExpression(params);
 
-if(symbolCheck != NULL)
+    if(symbolCheck != NULL)
     {
-    if(isProtected(symbolCheck->flags))
-        return(errorProcExt2(ERR_SYMBOL_PROTECTED, stuffSymbol(symbolCheck))); 
+        if(isProtected(symbolCheck->flags))
+            return(errorProcExt2(ERR_SYMBOL_PROTECTED, stuffSymbol(symbolCheck))); 
     }
-else
+    else
     {
-    if(cell == nilCell)
-        errorProc(ERR_INVALID_PARAMETER);
+        if(cell == nilCell)
+            errorProc(ERR_INVALID_PARAMETER);
     }
 
-if(!isNil(cell)) getFloat(cell, &lValue);
+    if(!isNil(cell)) getFloat(cell, &lValue);
 
-if(cell == nilCell) /* v. 10.7.1 */
+    if(cell == nilCell) /* v. 10.7.1 */
         errorProc(ERR_INVALID_PARAMETER);
 
-if(params->next != nilCell)
-    getFloat(params->next, &adjust);
+    if(params->next != nilCell)
+        getFloat(params->next, &adjust);
 
-cell->type = CELL_FLOAT;
+    cell->type = CELL_FLOAT;
 #ifndef NEWLISP64
-*(double *)&cell->aux = lValue + adjust * type;
+    *(double *)&cell->aux = lValue + adjust * type;
 #else
-*(double *)&cell->contents = lValue + adjust * type;
+    *(double *)&cell->contents = lValue + adjust * type;
 #endif
 
-return(copyCell(cell));
+    return(copyCell(cell));
 }
 
 
@@ -238,153 +238,153 @@ CELL * p_decrementF(CELL * params) { return(incDecF(params, -1)); }
 
 CELL * arithmetikOp(CELL * params, int op)
 {
-INT64 number;
-INT64 result;
+    INT64 number;
+    INT64 result;
 #ifdef BIGINT
-int sizex = 0;
-int sizey = 0;
-int n;
-int * num = NULL;
-int * numx;
-int * numy;
-int * freePtr = NULL;
-CELL * next;
+    int sizex = 0;
+    int sizey = 0;
+    int n;
+    int * num = NULL;
+    int * numx;
+    int * numy;
+    int * freePtr = NULL;
+    CELL * next;
 #endif
-CELL * cell;
+    CELL * cell;
 
-if(params == nilCell)
+    if(params == nilCell)
     {
-    if(op == OP_ADD)
-        return(stuffInteger64(0));
-    if(op == OP_MULTIPLY)
-        return(stuffInteger64(1));
+        if(op == OP_ADD)
+            return(stuffInteger64(0));
+        if(op == OP_MULTIPLY)
+            return(stuffInteger64(1));
     }
 
-cell = evaluateExpression(params);
-params = params->next;
+    cell = evaluateExpression(params);
+    params = params->next;
 #ifdef BIGINT
-if(cell->type == CELL_BIGINT)
+    if(cell->type == CELL_BIGINT)
     {
-    if(params == nilCell)
+        if(params == nilCell)
         {
-        cell = copyCell(cell);
-        switch(op)
+            cell = copyCell(cell);
+            switch(op)
             {
-            case OP_SUBTRACT:
-                *(int *)cell->contents *= -1; break;
+                case OP_SUBTRACT:
+                    *(int *)cell->contents *= -1; break;
+                case OP_ADD:
+                case OP_MULTIPLY:
+                case OP_DIVIDE:
+                case OP_MODULO:
+                    break;
+                default:
+                    return(errorProc(ERR_BIGINT_NOT_ALLOWED));
+            }
+            return(cell);
+        }
+
+NEXT_FIRST_BIGINT:
+        /* first OP is CELL_BIGINT */
+        numx = (int*)cell->contents;
+        sizex = cell->aux - 1;
+
+        /* if 2nd OP is not CELL_BIGINT memory is allocated */
+        next = evaluateExpression(params);
+        if(next->type == CELL_BIGINT) /* speedup */
+        {
+            numy = (int*)next->contents;
+            sizey = next->aux - 1;
+        }
+        else
+            freePtr = getBigintSizeDirect(next, &numy, &sizey); 
+
+        if(op == OP_MULTIPLY)
+            n = sizex + sizey + 2; 
+        else
+            n = sizex > sizey ? sizex  + 2: sizey + 2;
+
+        switch(op)
+        {
             case OP_ADD:
+                num = addBigint(numx, sizex, numy, sizey, malloc(n * sizeof(int)), &n); 
+                break;
+            case OP_SUBTRACT:
+                num = subBigint(numx, sizex, numy, sizey, malloc(n * sizeof(int)), &n); 
+                break;
             case OP_MULTIPLY:
-            case OP_DIVIDE:
+                num = mulBigint(numx, sizex, numy, sizey, malloc(n * sizeof(int)), &n); 
+                break;
+            case OP_DIVIDE:         
+                num = divModBigint(numx, sizex, numy, sizey, FALSE, &n); 
+                break;
             case OP_MODULO:
+                num = divModBigint(numx, sizex, numy, sizey, TRUE, &n);
                 break;
             default:
                 return(errorProc(ERR_BIGINT_NOT_ALLOWED));
-            }
-        return(cell);
-        }
-
-    NEXT_FIRST_BIGINT:
-    /* first OP is CELL_BIGINT */
-    numx = (int*)cell->contents;
-    sizex = cell->aux - 1;
-
-    /* if 2nd OP is not CELL_BIGINT memory is allocated */
-    next = evaluateExpression(params);
-    if(next->type == CELL_BIGINT) /* speedup */
-        {
-        numy = (int*)next->contents;
-        sizey = next->aux - 1;
-        }
-    else
-        freePtr = getBigintSizeDirect(next, &numy, &sizey); 
-
-    if(op == OP_MULTIPLY)
-        n = sizex + sizey + 2; 
-    else
-        n = sizex > sizey ? sizex  + 2: sizey + 2;
-
-    switch(op)
-        {
-        case OP_ADD:
-            num = addBigint(numx, sizex, numy, sizey, malloc(n * sizeof(int)), &n); 
-            break;
-        case OP_SUBTRACT:
-            num = subBigint(numx, sizex, numy, sizey, malloc(n * sizeof(int)), &n); 
-            break;
-        case OP_MULTIPLY:
-            num = mulBigint(numx, sizex, numy, sizey, malloc(n * sizeof(int)), &n); 
-            break;
-        case OP_DIVIDE:         
-            num = divModBigint(numx, sizex, numy, sizey, FALSE, &n); 
-            break;
-        case OP_MODULO:
-            num = divModBigint(numx, sizex, numy, sizey, TRUE, &n);
-            break;
-        default:
-            return(errorProc(ERR_BIGINT_NOT_ALLOWED));
         }    
 
-    if(freePtr) 
+        if(freePtr) 
         {
-        freeMemory(freePtr);
-        freePtr = NULL;
+            freeMemory(freePtr);
+            freePtr = NULL;
         } 
-    cell = getCell(CELL_BIGINT);
-    cell->contents = (UINT)num;
-    cell->aux = n + 1; 
-    if(params->next != nilCell)
+        cell = getCell(CELL_BIGINT);
+        cell->contents = (UINT)num;
+        cell->aux = n + 1; 
+        if(params->next != nilCell)
         {
-        pushResult(cell);
-        params = params->next;
-        goto NEXT_FIRST_BIGINT;
+            pushResult(cell);
+            params = params->next;
+            goto NEXT_FIRST_BIGINT;
         }
-    return(cell);
+        return(cell);
     }
 #endif
 
-getInteger64Ext(cell, &result, FALSE);
-if(params == nilCell)
+    getInteger64Ext(cell, &result, FALSE);
+    if(params == nilCell)
     {
-    switch(op)
+        switch(op)
         {
-        case OP_SUBTRACT:
-            result = - result;
-            break;
-        case OP_SHIFTL:
-            result <<= 1;
-            break;
-        case OP_SHIFTR:
-            result >>= 1;
-        default:
-            break;
+            case OP_SUBTRACT:
+                result = - result;
+                break;
+            case OP_SHIFTL:
+                result <<= 1;
+                break;
+            case OP_SHIFTR:
+                result >>= 1;
+            default:
+                break;
         }
     }
 
-else while(params != nilCell)
-    {
-    params = getInteger64Ext(params, &number, TRUE);
-    switch(op)
-        {
-        case OP_ADD:            result += number; break;
-        case OP_SUBTRACT:       result -= number; break;
-        case OP_MULTIPLY:       result *= number; break;
-        case OP_DIVIDE:         
-            if(number == 0) return(errorProc(ERR_MATH));
-                                result /= number; break;
-        case OP_BIT_OR:         result |= number; break;
-        case OP_BIT_AND:        result &= number; break;
-        case OP_BIT_XOR:        result ^= number; break;
-        case OP_SHIFTL:         result <<= number; break;
-        case OP_SHIFTR:         result >>= number; break;
-        case OP_MODULO:
-            if(number == 0) return(errorProc(ERR_MATH));
-            result %= number; break;
-        default:
-            break;
-        }
-    }
+    else while(params != nilCell)
+         {
+             params = getInteger64Ext(params, &number, TRUE);
+             switch(op)
+             {
+                 case OP_ADD:            result += number; break;
+                 case OP_SUBTRACT:       result -= number; break;
+                 case OP_MULTIPLY:       result *= number; break;
+                 case OP_DIVIDE:         
+                     if(number == 0) return(errorProc(ERR_MATH));
+                     result /= number; break;
+                 case OP_BIT_OR:         result |= number; break;
+                 case OP_BIT_AND:        result &= number; break;
+                 case OP_BIT_XOR:        result ^= number; break;
+                 case OP_SHIFTL:         result <<= number; break;
+                 case OP_SHIFTR:         result >>= number; break;
+                 case OP_MODULO:
+                     if(number == 0) return(errorProc(ERR_MATH));
+                     result %= number; break;
+                 default:
+                     break;
+             }
+         }
 
-return(stuffInteger64(result));
+    return(stuffInteger64(result));
 }
 
 
@@ -403,9 +403,9 @@ CELL * p_modulo(CELL * params) { return(arithmetikOp(params, OP_MODULO)); }
 
 CELL * p_bitNot(CELL * params)
 {
-INT64 number;
-getInteger64Ext(params, &number, TRUE);
-return(stuffInteger64(~number));
+    INT64 number;
+    getInteger64Ext(params, &number, TRUE);
+    return(stuffInteger64(~number));
 }
 
 
@@ -427,85 +427,85 @@ CELL * p_modFloat(CELL * params) { return(floatOp(params, OP_MODULO)); }
 
 CELL * floatOp(CELL * params, int op)
 {
-double number;
-double result;
+    double number;
+    double result;
 
-if(params == nilCell)
+    if(params == nilCell)
     {
-    if(op == OP_ADD)
+        if(op == OP_ADD)
         {
-        result = 0.0;
+            result = 0.0;
+            goto END_FLOAT_ARITHMETIK;
+        }
+        if(op == OP_MULTIPLY)
+        {
+            result = 1.0;
+            goto END_FLOAT_ARITHMETIK;
+        }
+    }
+
+    params = getFloat(params, &result);
+
+    if(params == nilCell)
+    {
+        switch(op)
+        {
+            case OP_SUBTRACT:
+                result = - result; break;
+            case OP_DIVIDE:
+                result = 1.0 / result; break;
+            case OP_POW:
+                result = result * result; break;
+            case OP_MODULO:
+                result = result - (int)result; break;
+            default: break;
+        }
         goto END_FLOAT_ARITHMETIK;
-        }
-    if(op == OP_MULTIPLY)
-        {
-        result = 1.0;
-        goto END_FLOAT_ARITHMETIK;
-        }
     }
 
-params = getFloat(params, &result);
-
-if(params == nilCell)
-    {
-    switch(op)
-        {
-        case OP_SUBTRACT:
-            result = - result; break;
-        case OP_DIVIDE:
-            result = 1.0 / result; break;
-        case OP_POW:
-            result = result * result; break;
-        case OP_MODULO:
-            result = result - (int)result; break;
-        default: break;
-        }
-    goto END_FLOAT_ARITHMETIK;
-    }
-
-else while(params != nilCell)
-    {
-    params = getFloat(params, &number);
-    switch(op)
-        {
-        case OP_ADD:            result += number; break;
-        case OP_SUBTRACT:       result -= number; break;
-        case OP_MULTIPLY:       result *= number; break;
-        case OP_DIVIDE:         result /= number; break;
-        case OP_MIN: if(number < result) result = number; break;
-        case OP_MAX: if(number > result) result = number; break;
-        case OP_POW: result = pow(result, number); break;
-        case OP_MODULO: 
-            result = fmod(result, number);
-        default: break;
-        }
-    }
+    else while(params != nilCell)
+         {
+             params = getFloat(params, &number);
+             switch(op)
+             {
+                 case OP_ADD:            result += number; break;
+                 case OP_SUBTRACT:       result -= number; break;
+                 case OP_MULTIPLY:       result *= number; break;
+                 case OP_DIVIDE:         result /= number; break;
+                 case OP_MIN: if(number < result) result = number; break;
+                 case OP_MAX: if(number > result) result = number; break;
+                 case OP_POW: result = pow(result, number); break;
+                 case OP_MODULO: 
+                     result = fmod(result, number);
+                 default: break;
+             }
+         }
 
 END_FLOAT_ARITHMETIK:
-params = getCell(CELL_FLOAT);
+    params = getCell(CELL_FLOAT);
 #ifndef NEWLISP64
-memcpy((void *)&params->aux, (void *)&result, sizeof(double));
+    memcpy((void *)&params->aux, (void *)&result, sizeof(double));
 #else
-*(double *)&params->contents = result;
+    *(double *)&params->contents = result;
 #endif
-return(params);
+    return(params);
 }
 
 
 int compareFloats(CELL * left, CELL * right)
 {
-double leftFloat, rightFloat;
+    double leftFloat, rightFloat;
 
-leftFloat = getDirectFloat(left);
-rightFloat = getDirectFloat(right);
+    leftFloat = getDirectFloat(left);
+    rightFloat = getDirectFloat(right);
 
 /* if(isnan(leftFloat) && isnan(rightFloat)) return(0); */
-if(isnan(leftFloat) || isnan(rightFloat)) return(9);
+    if(isnan(leftFloat) || isnan(rightFloat)) return(9);
 
-if(leftFloat < rightFloat) return(-1);
-if(leftFloat > rightFloat) return(1);
+    if(leftFloat < rightFloat) return(-1);
+    if(leftFloat > rightFloat) return(1);
 
-return(0);
+    return(0);
 }
 
 /* should only be called when left and right type are different 
@@ -513,89 +513,89 @@ return(0);
 */
 int compareInts(CELL * left, CELL * right)
 {
-INT64 leftnum;
-INT64 rightnum;
+    INT64 leftnum;
+    INT64 rightnum;
 
 #ifdef BIGINT
-int * leftnumPtr;
-int leftlen;
-int * rightnumPtr;
-int rightlen;
-int cmp;
+    int * leftnumPtr;
+    int leftlen;
+    int * rightnumPtr;
+    int rightlen;
+    int cmp;
 
-if(left->type == CELL_BIGINT)
+    if(left->type == CELL_BIGINT)
     {
-    leftnumPtr = (int *)left->contents;
-    leftlen = left->aux - 1;
-    /* would never get here when right->type == CELL_BIGINT */
-    getBigintSizeDirect(right , &rightnumPtr, &rightlen);
-    cmp = cmpBigint(leftnumPtr, leftlen, rightnumPtr, rightlen);
-    freeMemory(rightnumPtr); 
-    return(cmp);
+        leftnumPtr = (int *)left->contents;
+        leftlen = left->aux - 1;
+        /* would never get here when right->type == CELL_BIGINT */
+        getBigintSizeDirect(right , &rightnumPtr, &rightlen);
+        cmp = cmpBigint(leftnumPtr, leftlen, rightnumPtr, rightlen);
+        freeMemory(rightnumPtr); 
+        return(cmp);
     }
 #endif
 
 #ifndef NEWLISP64
-if(left->type == CELL_LONG)
-    leftnum = (int)left->contents;
-else
-    leftnum = *(INT64 *)&left->aux;
+    if(left->type == CELL_LONG)
+        leftnum = (int)left->contents;
+    else
+        leftnum = *(INT64 *)&left->aux;
 
-if(right->type == CELL_LONG)
-    rightnum = (int)right->contents;
+    if(right->type == CELL_LONG)
+        rightnum = (int)right->contents;
 #ifdef CELL_BIGINT
-else if(right->type == CELL_BIGINT)
-    getInteger64Ext(right, &rightnum, FALSE);
+    else if(right->type == CELL_BIGINT)
+        getInteger64Ext(right, &rightnum, FALSE);
 #endif
-else
-    rightnum = *(INT64 *)&right->aux;
+    else
+        rightnum = *(INT64 *)&right->aux;
 #else /* NEWLISP64 */
-leftnum = (UINT)left->contents;
+    leftnum = (UINT)left->contents;
 #ifdef CELL_BIGINT 
-if(right->type == CELL_BIGINT)
-   getInteger64Ext(right, &rightnum, FALSE);
-else
+    if(right->type == CELL_BIGINT)
+        getInteger64Ext(right, &rightnum, FALSE);
+    else
 #endif 
-rightnum = (UINT)right->contents;
+        rightnum = (UINT)right->contents;
 #endif /* NEWLISP64 */
 
-if(leftnum < rightnum) return(-1);
-if(leftnum > rightnum) return(1);
+    if(leftnum < rightnum) return(-1);
+    if(leftnum > rightnum) return(1);
 
-return(0);
+    return(0);
 }
 
 
 double getDirectFloat(CELL * param)
 {
-double floatNum = 0.0;
+    double floatNum = 0.0;
 
 #ifndef NEWLISP64
-if(param->type == CELL_FLOAT)
-    return(*(double *)&param->aux);
-else if(param->type == CELL_LONG)
-    floatNum = (INT)param->contents;
-else if(param->type == CELL_INT64)
-    floatNum = *(INT64 *)&param->aux;
+    if(param->type == CELL_FLOAT)
+        return(*(double *)&param->aux);
+    else if(param->type == CELL_LONG)
+        floatNum = (INT)param->contents;
+    else if(param->type == CELL_INT64)
+        floatNum = *(INT64 *)&param->aux;
 #ifdef BIGINT
-else if(param->type == CELL_BIGINT)
-    floatNum = bigintCellToFloat(param);
+    else if(param->type == CELL_BIGINT)
+        floatNum = bigintCellToFloat(param);
 #endif
 
 #else /* NEWLISP64 */
-if(param->type == CELL_FLOAT)
-    return(*(double *)&param->contents);
-else if(param->type == CELL_LONG)
-    floatNum = (INT)param->contents;
+    if(param->type == CELL_FLOAT)
+        return(*(double *)&param->contents);
+    else if(param->type == CELL_LONG)
+        floatNum = (INT)param->contents;
 
 #ifdef BIGINT
-else if(param->type == CELL_BIGINT)
-    floatNum = bigintCellToFloat(param);
+    else if(param->type == CELL_BIGINT)
+        floatNum = bigintCellToFloat(param);
 #endif
 
 #endif
 
-return(floatNum);
+    return(floatNum);
 }
 
 /* ----------------------------- float functions ----------------------- */
@@ -627,230 +627,230 @@ CELL * p_isinf(CELL * params) { return(functionFloat(params, OP_ISINF)); }
 
 CELL * functionFloat(CELL * params, int op)
 {
-double floatN;
-double base;
-CELL * cell;
+    double floatN;
+    double base;
+    CELL * cell;
 
-getFloat(params, &floatN);
+    getFloat(params, &floatN);
 
-switch(op)
-  {
-  case OP_SIN: floatN = sin(floatN); break;
-  case OP_COS: floatN = cos(floatN); break;
-  case OP_TAN: floatN = tan(floatN); break;
+    switch(op)
+    {
+        case OP_SIN: floatN = sin(floatN); break;
+        case OP_COS: floatN = cos(floatN); break;
+        case OP_TAN: floatN = tan(floatN); break;
 
-  case OP_ASIN: floatN = asin(floatN); break;
-  case OP_ACOS: floatN = acos(floatN); break;
-  case OP_ATAN: floatN = atan(floatN); break;
+        case OP_ASIN: floatN = asin(floatN); break;
+        case OP_ACOS: floatN = acos(floatN); break;
+        case OP_ATAN: floatN = atan(floatN); break;
 
-  case OP_SINH: floatN = sinh(floatN); break;
-  case OP_COSH: floatN = cosh(floatN); break;
-  case OP_TANH: floatN = tanh(floatN); break;
+        case OP_SINH: floatN = sinh(floatN); break;
+        case OP_COSH: floatN = cosh(floatN); break;
+        case OP_TANH: floatN = tanh(floatN); break;
 
-  case OP_ASINH: floatN = asinh(floatN); break;
-  case OP_ACOSH: floatN = acosh(floatN); break;
-  case OP_ATANH: floatN = atanh(floatN); break;
+        case OP_ASINH: floatN = asinh(floatN); break;
+        case OP_ACOSH: floatN = acosh(floatN); break;
+        case OP_ATANH: floatN = atanh(floatN); break;
 
-  case OP_SQRT: floatN = sqrt(floatN); break;
-  case OP_LOG:
-    if(params->next != nilCell)
-      {
-      getFloat(params->next, &base);
-      floatN = log(floatN) / log(base);
-      } 
-    else 
-      floatN = log(floatN); 
-    break;
-  case OP_EXP: floatN = exp(floatN); break;
-  case OP_CEIL: floatN = ceil(floatN); break;
-  case OP_FLOOR: floatN = floor(floatN); break;
-  case OP_ERRORFUNC: floatN = erf(floatN); break;
-  case OP_SIGNUM:
-    if(params->next == nilCell)
-        { 
-        if(floatN > 0.0) floatN = 1.0;
-        else if(floatN < 0.0) floatN = -1.0; 
-        else floatN = 0.0;
-        break;
-        }
-    else
-        {
-        if(floatN < 0.0) cell = params->next;
-        else
+        case OP_SQRT: floatN = sqrt(floatN); break;
+        case OP_LOG:
+            if(params->next != nilCell)
             {
-            params = params->next;
-            if(floatN == 0.0) cell = params->next;
-            else {
-                 params = params->next;
-                 cell = params->next;
-                 }
+                getFloat(params->next, &base);
+                floatN = log(floatN) / log(base);
+            } 
+            else 
+                floatN = log(floatN); 
+            break;
+        case OP_EXP: floatN = exp(floatN); break;
+        case OP_CEIL: floatN = ceil(floatN); break;
+        case OP_FLOOR: floatN = floor(floatN); break;
+        case OP_ERRORFUNC: floatN = erf(floatN); break;
+        case OP_SIGNUM:
+            if(params->next == nilCell)
+            { 
+                if(floatN > 0.0) floatN = 1.0;
+                else if(floatN < 0.0) floatN = -1.0; 
+                else floatN = 0.0;
+                break;
             }
-        }
+            else
+            {
+                if(floatN < 0.0) cell = params->next;
+                else
+                {
+                    params = params->next;
+                    if(floatN == 0.0) cell = params->next;
+                    else {
+                        params = params->next;
+                        cell = params->next;
+                    }
+                }
+            }
             
-        return(copyCell(evaluateExpression(cell)));
-    case OP_ISNAN:
-        return (isnan(floatN) ? trueCell : nilCell);
-    case OP_ISINF:
+            return(copyCell(evaluateExpression(cell)));
+        case OP_ISNAN:
+            return (isnan(floatN) ? trueCell : nilCell);
+        case OP_ISINF:
 #ifdef SOLARIS
-        return((isnan(floatN - floatN)) ? trueCell : nilCell);
+            return((isnan(floatN - floatN)) ? trueCell : nilCell);
 #else
-        return(isinf(floatN) ? trueCell : nilCell);
+            return(isinf(floatN) ? trueCell : nilCell);
 #endif
-    default: break;
+        default: break;
     }
 
-cell = getCell(CELL_FLOAT);
+    cell = getCell(CELL_FLOAT);
 #ifndef NEWLISP64
-*(double *)&cell->aux = floatN;
+    *(double *)&cell->aux = floatN;
 #else
-*(double *)&cell->contents = floatN;
+    *(double *)&cell->contents = floatN;
 #endif
-return(cell);
+    return(cell);
 }
 
 CELL * p_ssq(CELL * params)
 {
-CELL * cell;
-double floatNum = 0.0;
-double sqSum = 0.0;
-CELL * * addr;
-UINT idx, n;
+    CELL * cell;
+    double floatNum = 0.0;
+    double sqSum = 0.0;
+    CELL * * addr;
+    UINT idx, n;
 
-getEvalDefault(params, &cell);
-if(cell->type == CELL_EXPRESSION)
+    getEvalDefault(params, &cell);
+    if(cell->type == CELL_EXPRESSION)
     {
-    cell = (CELL *)cell->contents;
-    while(cell != nilCell)
+        cell = (CELL *)cell->contents;
+        while(cell != nilCell)
         {
-        floatNum = getDirectFloat(cell);
-        sqSum += floatNum * floatNum;
-        cell = cell->next;
+            floatNum = getDirectFloat(cell);
+            sqSum += floatNum * floatNum;
+            cell = cell->next;
         }    
     }
-else if(cell->type == CELL_ARRAY)
+    else if(cell->type == CELL_ARRAY)
     {
-    addr = (CELL * *)cell->contents;
-    n = (cell->aux - 1) / sizeof(CELL *);
-    for (idx = 0; idx < n; idx++)
+        addr = (CELL * *)cell->contents;
+        n = (cell->aux - 1) / sizeof(CELL *);
+        for (idx = 0; idx < n; idx++)
         {
-        cell = *(addr + idx);
-        floatNum = getDirectFloat(cell);
-        sqSum += floatNum * floatNum;
+            cell = *(addr + idx);
+            floatNum = getDirectFloat(cell);
+            sqSum += floatNum * floatNum;
         }
     }
-else return(errorProcExt(ERR_LIST_OR_ARRAY_EXPECTED, params));
+    else return(errorProcExt(ERR_LIST_OR_ARRAY_EXPECTED, params));
 
-return(stuffFloat(sqSum));
+    return(stuffFloat(sqSum));
 }
 
 CELL * p_atan2(CELL * params)
 {
-double floatX, floatY;
-CELL * cell;
+    double floatX, floatY;
+    CELL * cell;
 
-params = getFloat(params, &floatX);
-getFloat(params, &floatY);
+    params = getFloat(params, &floatX);
+    getFloat(params, &floatY);
 
-cell = getCell(CELL_FLOAT);
+    cell = getCell(CELL_FLOAT);
 #ifndef NEWLISP64
-*(double *)&cell->aux = atan2(floatX, floatY);
+    *(double *)&cell->aux = atan2(floatX, floatY);
 #else
-*(double *)&cell->contents = atan2(floatX, floatY);
+    *(double *)&cell->contents = atan2(floatX, floatY);
 #endif
-return(cell);
+    return(cell);
 }
 
 CELL * p_round(CELL * params)
 {
-double fNum;
-double precision = 1.0;
-INT digits = 0;
-char * fmt;
-char * result;
+    double fNum;
+    double precision = 1.0;
+    INT digits = 0;
+    char * fmt;
+    char * result;
 
 
-params = getFloat(params, &fNum);
-if(params != nilCell)
-    getInteger(params, (UINT*)&digits);
+    params = getFloat(params, &fNum);
+    if(params != nilCell)
+        getInteger(params, (UINT*)&digits);
 
-if(digits >= 0)
+    if(digits >= 0)
     {
-    precision = pow(10.0, (double)(digits > 20 ? 20 : digits));
-    fNum = precision * floor(fNum/precision + 0.5);
+        precision = pow(10.0, (double)(digits > 20 ? 20 : digits));
+        fNum = precision * floor(fNum/precision + 0.5);
     }
-else
+    else
     {
-    fmt = alloca(16);
-    result = alloca(32);
-    snprintf(fmt, 15, "%%.%df", (int)((digits < -16) ? 16 : -digits));
-    snprintf(result, 31, fmt, fNum);
-    fNum = atof(result);
+        fmt = alloca(16);
+        result = alloca(32);
+        snprintf(fmt, 15, "%%.%df", (int)((digits < -16) ? 16 : -digits));
+        snprintf(result, 31, fmt, fNum);
+        fNum = atof(result);
     }
 
-return(stuffFloat(fNum)); 
+    return(stuffFloat(fNum)); 
 }
 
 
 CELL * p_rand(CELL * params)
 {
-INT range;  
-INT n;
-CELL * dist, * cell;
-INT rnum;
-double scale;
+    INT range;  
+    INT n;
+    CELL * dist, * cell;
+    INT rnum;
+    double scale;
 
-params = getInteger(params, (UINT *)&range);
-scale = range;
-if(range == 0)
+    params = getInteger(params, (UINT *)&range);
+    scale = range;
+    if(range == 0)
     {
-    srandom((unsigned)time(NULL));
-    return(trueCell);
+        srandom((unsigned)time(NULL));
+        return(trueCell);
     }
 
-while((rnum = my_random()) == max_rand);
-rnum = (scale * rnum)/max_rand;
-
-if(params->type == CELL_NIL)
-    return(stuffInteger((UINT)rnum));
-    
-getInteger(params, (UINT *)&n);
-
-
-cell = stuffInteger((UINT)rnum);
-dist = makeCell(CELL_EXPRESSION, (UINT)cell);
-
---n;
-while(n-- > 0)
-    {
     while((rnum = my_random()) == max_rand);
     rnum = (scale * rnum)/max_rand;
-    cell->next = stuffInteger((UINT)rnum);
-    cell = cell->next;
+
+    if(params->type == CELL_NIL)
+        return(stuffInteger((UINT)rnum));
+    
+    getInteger(params, (UINT *)&n);
+
+
+    cell = stuffInteger((UINT)rnum);
+    dist = makeCell(CELL_EXPRESSION, (UINT)cell);
+
+    --n;
+    while(n-- > 0)
+    {
+        while((rnum = my_random()) == max_rand);
+        rnum = (scale * rnum)/max_rand;
+        cell->next = stuffInteger((UINT)rnum);
+        cell = cell->next;
     }
 
-return(dist);
+    return(dist);
 }
 
 
 CELL * p_amb(CELL * params)
 {
-INT len;
-CELL * cell;
+    INT len;
+    CELL * cell;
 
-if((len = listlen(params)) == 0) return(nilCell);
+    if((len = listlen(params)) == 0) return(nilCell);
 
-len = my_random() % len;
+    len = my_random() % len;
 
-while(len--) params = params->next;
+    while(len--) params = params->next;
 
-cell = evaluateExpression(params);
-if(symbolCheck)
+    cell = evaluateExpression(params);
+    if(symbolCheck)
     {
-    pushResultFlag = FALSE;
-    return(cell);
+        pushResultFlag = FALSE;
+        return(cell);
     }
 
-return(copyCell(cell));
+    return(copyCell(cell));
 }
 
 
@@ -861,22 +861,22 @@ extern uint32_t randseed;
 
 CELL *  p_seed(CELL * params)
 {
-static INT64 seedNum = 0;
+    static INT64 seedNum = 0;
 
-if(params == nilCell)
-    return(stuffInteger(my_random_flag ? randseed : seedNum));
+    if(params == nilCell)
+        return(stuffInteger(my_random_flag ? randseed : seedNum));
 
-params = getInteger64Ext(params, &seedNum, TRUE);
+    params = getInteger64Ext(params, &seedNum, TRUE);
 
-my_random_flag = getFlag(params);
-max_rand = my_random_flag ? 0x7FFFFFFF : MY_RAND_MAX;
+    my_random_flag = getFlag(params);
+    max_rand = my_random_flag ? 0x7FFFFFFF : MY_RAND_MAX;
 
-if(my_random_flag && params->next != nilCell)
+    if(my_random_flag && params->next != nilCell)
         getInteger(params->next, &nshuff);
         
-my_srandom((UINT)(seedNum & 0xFFFFFFFF));
+    my_srandom((UINT)(seedNum & 0xFFFFFFFF));
 
-return(stuffInteger(seedNum));
+    return(stuffInteger(seedNum));
 }
 
 
@@ -898,290 +898,290 @@ CELL * p_notEqual(CELL * params) { return(compareOp(params, OP_NOTEQUAL)); }
 
 CELL * compareOp(CELL * params, int op)
 {
-CELL * left;
-CELL * right;
-INT cnt = 0;
-int comp;
+    CELL * left;
+    CELL * right;
+    INT cnt = 0;
+    int comp;
 
-left = evaluateExpression(params);
+    left = evaluateExpression(params);
 
-while(TRUE)
+    while(TRUE)
     {
-    if((params = params->next) == nilCell && cnt == 0)
+        if((params = params->next) == nilCell && cnt == 0)
         {
-        if(isNumber(left->type))
-            right = stuffInteger64(0);
-        else if(left->type == CELL_STRING)
-            right = stuffString("");
-        else if(isList(left->type))
-            right = getCell(CELL_EXPRESSION);
-        else break;     
-        pushResult(right);
+            if(isNumber(left->type))
+                right = stuffInteger64(0);
+            else if(left->type == CELL_STRING)
+                right = stuffString("");
+            else if(isList(left->type))
+                right = getCell(CELL_EXPRESSION);
+            else break;     
+            pushResult(right);
         }
-    else
-        right = evaluateExpression(params);
-    ++cnt;
+        else
+            right = evaluateExpression(params);
+        ++cnt;
 
-    if((comp = compareCells(left, right)) == 9) 
-        return( (op == OP_NOTEQUAL) ? trueCell : nilCell);
+        if((comp = compareCells(left, right)) == 9) 
+            return( (op == OP_NOTEQUAL) ? trueCell : nilCell);
 
-    switch(op)
+        switch(op)
         {
-        case OP_LESS:
-            if(comp >= 0) return(nilCell);
-            break;
-        case OP_GREATER:
-            if(comp <= 0) return(nilCell);
-            break;
-        case OP_LESS_EQUAL:
-            if(comp > 0) return(nilCell);
-            break;
-        case OP_GREATER_EQUAL:
-            if(comp < 0) return(nilCell);
-            break;
-        case OP_EQUAL:
-            if(comp != 0) return(nilCell);
-            break;
-        case OP_NOTEQUAL:
-            if(comp == 0) return(nilCell);
-        default:
-            break;
+            case OP_LESS:
+                if(comp >= 0) return(nilCell);
+                break;
+            case OP_GREATER:
+                if(comp <= 0) return(nilCell);
+                break;
+            case OP_LESS_EQUAL:
+                if(comp > 0) return(nilCell);
+                break;
+            case OP_GREATER_EQUAL:
+                if(comp < 0) return(nilCell);
+                break;
+            case OP_EQUAL:
+                if(comp != 0) return(nilCell);
+                break;
+            case OP_NOTEQUAL:
+                if(comp == 0) return(nilCell);
+            default:
+                break;
         }
 
-    if(params->next == nilCell) break;
-    left = right;
+        if(params->next == nilCell) break;
+        left = right;
     }
 
-return(trueCell);
+    return(trueCell);
 }
 
 int compareSymbols(CELL * left, CELL * right)
 {
-SYMBOL * leftS;
-SYMBOL * rightS;
-char * lcName;
-char * rcName;
-char * lsName;
-char * rsName;
-int comp;
+    SYMBOL * leftS;
+    SYMBOL * rightS;
+    char * lcName;
+    char * rcName;
+    char * lsName;
+    char * rsName;
+    int comp;
 
-if(left->contents == (UINT)nilSymbol)
+    if(left->contents == (UINT)nilSymbol)
     {
-    if(right->contents == left->contents)return(0);
-    else return(-1);
+        if(right->contents == left->contents)return(0);
+        else return(-1);
     }
 
-if(left->contents == (UINT)trueSymbol)
+    if(left->contents == (UINT)trueSymbol)
     {
+        if(left->contents == right->contents) return(0);
+        if(right->contents == (UINT)nilSymbol) return(1);
+        return(-1);
+    }
+
+    if(right->contents == (UINT)nilSymbol || right->contents == (UINT)trueSymbol)
+        return(1);
+
     if(left->contents == right->contents) return(0);
-    if(right->contents == (UINT)nilSymbol) return(1);
-    return(-1);
-    }
-
-if(right->contents == (UINT)nilSymbol || right->contents == (UINT)trueSymbol)
-    return(1);
-
-if(left->contents == right->contents) return(0);
 
 /* else compare context- and symbol- names */
 
-if(left->type == CELL_SYMBOL)
+    if(left->type == CELL_SYMBOL)
     {
-    leftS = (SYMBOL *)left->contents;
-    lcName = ((SYMBOL *)leftS->context)->name;
-    lsName = leftS->name;
+        leftS = (SYMBOL *)left->contents;
+        lcName = ((SYMBOL *)leftS->context)->name;
+        lsName = leftS->name;
     }
-else
+    else
     {
-    lcName = ((SYMBOL *)left->aux)->name;
-    lsName = (char *)left->contents;
-    }
-
-if(right->type == CELL_SYMBOL)
-    {
-    rightS = (SYMBOL *)right->contents;
-    rcName = ((SYMBOL *)rightS->context)->name;
-    rsName = rightS->name;
-    }
-else
-    {
-    rcName = ((SYMBOL *)right->aux)->name;
-    rsName = (char *)right->contents;
+        lcName = ((SYMBOL *)left->aux)->name;
+        lsName = (char *)left->contents;
     }
 
-if((comp = strcmp(lcName, rcName)) == 0)
+    if(right->type == CELL_SYMBOL)
     {
-    if((comp = strcmp(lsName, rsName)) == 0) return(0); 
+        rightS = (SYMBOL *)right->contents;
+        rcName = ((SYMBOL *)rightS->context)->name;
+        rsName = rightS->name;
+    }
+    else
+    {
+        rcName = ((SYMBOL *)right->aux)->name;
+        rsName = (char *)right->contents;
     }
 
-return (comp > 0 ? 1 : -1);
+    if((comp = strcmp(lcName, rcName)) == 0)
+    {
+        if((comp = strcmp(lsName, rsName)) == 0) return(0); 
+    }
+
+    return (comp > 0 ? 1 : -1);
 }
 
 
 /* returns equal: 0 less: -1 greater: 1 or 9 if NaN or Inf equal comparison */
 int compareCells(CELL * left, CELL * right)
 {
-int comp;
+    int comp;
 
-if(left->type != right->type)
+    if(left->type != right->type)
     {
-    if(left->type == CELL_FLOAT && ((right->type & COMPARE_TYPE_MASK) == CELL_INT))
-        return(compareFloats(left, right));
-    if(((left->type & COMPARE_TYPE_MASK) == CELL_INT) && right->type == CELL_FLOAT)
-        return(compareFloats(left, right));
+        if(left->type == CELL_FLOAT && ((right->type & COMPARE_TYPE_MASK) == CELL_INT))
+            return(compareFloats(left, right));
+        if(((left->type & COMPARE_TYPE_MASK) == CELL_INT) && right->type == CELL_FLOAT)
+            return(compareFloats(left, right));
 
-    if((left->type & COMPARE_TYPE_MASK) == CELL_INT && (right->type & COMPARE_TYPE_MASK) == CELL_INT)
-        return(compareInts(left, right));
+        if((left->type & COMPARE_TYPE_MASK) == CELL_INT && (right->type & COMPARE_TYPE_MASK) == CELL_INT)
+            return(compareInts(left, right));
 
-    if(isNil(left))
+        if(isNil(left))
         {
-        if(isNil(right)) return(0);
-        else return(-1);
+            if(isNil(right)) return(0);
+            else return(-1);
         }
 
-    if(isTrue(left))
+        if(isTrue(left))
         {
-        if(isTrue(right)) return(0);
-        if(isNil(right)) return(1);
-        return(-1);
+            if(isTrue(right)) return(0);
+            if(isNil(right)) return(1);
+            return(-1);
         }
 
-    if(isNil(right) || isTrue(right))
-        return(1);
-    if(isSymbol(left->type) && isSymbol(right->type))
-        return(compareSymbols(left, right));
+        if(isNil(right) || isTrue(right))
+            return(1);
+        if(isSymbol(left->type) && isSymbol(right->type))
+            return(compareSymbols(left, right));
         
-    if( (left->type == CELL_SYMBOL && right->type == CELL_CONTEXT) ||
-        (left->type == CELL_CONTEXT && right->type == CELL_SYMBOL) )
+        if( (left->type == CELL_SYMBOL && right->type == CELL_CONTEXT) ||
+            (left->type == CELL_CONTEXT && right->type == CELL_SYMBOL) )
         {
-        if((comp = strcmp( ((SYMBOL *)left->contents)->name, 
-                           ((SYMBOL *)right->contents)->name)) == 0) return(0);
-        return (comp > 0 ? 1 : -1);
+            if((comp = strcmp( ((SYMBOL *)left->contents)->name, 
+                               ((SYMBOL *)right->contents)->name)) == 0) return(0);
+            return (comp > 0 ? 1 : -1);
         }
 
-    comp = (left->type & COMPARE_TYPE_MASK) - (right->type & COMPARE_TYPE_MASK);
-    if(comp == 0) return(0);
+        comp = (left->type & COMPARE_TYPE_MASK) - (right->type & COMPARE_TYPE_MASK);
+        if(comp == 0) return(0);
 
-    return( comp > 0 ? 1 : -1);
+        return( comp > 0 ? 1 : -1);
     }
 
 /* left type and right type are the same */
-switch(left->type)
+    switch(left->type)
     {
-    case CELL_STRING:
-        comp = left->aux - right->aux;
-        if(comp == 0)
+        case CELL_STRING:
+            comp = left->aux - right->aux;
+            if(comp == 0)
             {
-            if((comp = memcmp((char *)left->contents, 
-                    (char *)right->contents,
-                    left->aux)) == 0) return(0);
+                if((comp = memcmp((char *)left->contents, 
+                                  (char *)right->contents,
+                                  left->aux)) == 0) return(0);
             }
-        else if(comp > 0)
+            else if(comp > 0)
             {
-            if((comp = memcmp((char *)left->contents,
-                      (char *)right->contents,
-                      right->aux - 1)) == 0) 
-                return(1);
+                if((comp = memcmp((char *)left->contents,
+                                  (char *)right->contents,
+                                  right->aux - 1)) == 0) 
+                    return(1);
             }
-        else if(comp < 0)
+            else if(comp < 0)
             {
-            if((comp = memcmp((char *)left->contents,
-                      (char *)right->contents,
-                      left->aux - 1)) == 0) 
-                return(-1);
+                if((comp = memcmp((char *)left->contents,
+                                  (char *)right->contents,
+                                  left->aux - 1)) == 0) 
+                    return(-1);
             }
             
-        return (comp > 0 ? 1 : -1);
+            return (comp > 0 ? 1 : -1);
 
-    case CELL_SYMBOL:
-    case CELL_DYN_SYMBOL:
-        return(compareSymbols(left, right));
+        case CELL_SYMBOL:
+        case CELL_DYN_SYMBOL:
+            return(compareSymbols(left, right));
 
-    case CELL_QUOTE:
-    case CELL_EXPRESSION:
-    case CELL_LAMBDA:
-    case CELL_FEXPR:
-        return(compareLists((CELL*)left->contents, (CELL*)right->contents));
-    case CELL_ARRAY:
-        return(compareArrays((CELL*)left, (CELL*)right));
-    case CELL_FLOAT:
-        return(compareFloats(left, right));
+        case CELL_QUOTE:
+        case CELL_EXPRESSION:
+        case CELL_LAMBDA:
+        case CELL_FEXPR:
+            return(compareLists((CELL*)left->contents, (CELL*)right->contents));
+        case CELL_ARRAY:
+            return(compareArrays((CELL*)left, (CELL*)right));
+        case CELL_FLOAT:
+            return(compareFloats(left, right));
 #ifndef NEWLISP64
-    case CELL_INT64:
-        if(*(INT64 *)&left->aux > *(INT64 *)&right->aux) return(1);
-        if(*(INT64 *)&left->aux < *(INT64 *)&right->aux) return(-1);
-        break;
+        case CELL_INT64:
+            if(*(INT64 *)&left->aux > *(INT64 *)&right->aux) return(1);
+            if(*(INT64 *)&left->aux < *(INT64 *)&right->aux) return(-1);
+            break;
 #endif
 #ifdef BIGINT
-    case CELL_BIGINT:
-        comp = cmpBigint((int *)(UINT)left->contents, 
-                        left->aux - 1, (int *)(UINT)right->contents, right->aux - 1);
-        return(comp);
+        case CELL_BIGINT:
+            comp = cmpBigint((int *)(UINT)left->contents, 
+                             left->aux - 1, (int *)(UINT)right->contents, right->aux - 1);
+            return(comp);
 #endif 
-    case CELL_LONG:
-    default:
-        if((INT)left->contents > (INT)right->contents) return(1);
-        if((INT)left->contents < (INT)right->contents) return(-1);
-        break;  
+        case CELL_LONG:
+        default:
+            if((INT)left->contents > (INT)right->contents) return(1);
+            if((INT)left->contents < (INT)right->contents) return(-1);
+            break;  
     }
 
-return(0);
+    return(0);
 }
 
 int compareLists(CELL * left, CELL * right)
 {
-int result;
+    int result;
 
-while(left != nilCell && right != nilCell) /* 10.7.5 */
+    while(left != nilCell && right != nilCell) /* 10.7.5 */
     {
-    if( (result = compareCells(left, right)) != 0)
-        return(result);
-    left = left->next;
-    right = right->next;
+        if( (result = compareCells(left, right)) != 0)
+            return(result);
+        left = left->next;
+        right = right->next;
     }
-if(right == nilCell && left == nilCell) /* 10.7.5 */
-	return(0);
-return((left == nilCell) ? -1 : 1); /* 10.7.5 */
+    if(right == nilCell && left == nilCell) /* 10.7.5 */
+        return(0);
+    return((left == nilCell) ? -1 : 1); /* 10.7.5 */
 }
 
 /* ---------------------------- encryption -----------------------------
 
-  XOR one-pad enryption
+   XOR one-pad enryption
 
 */
 
 
 void encryptPad(char *encrypted, char *data, char * key, size_t dataLen, size_t keyLen)
 {
-size_t i;
-for(i = 0; i < dataLen; i++)
-    *(encrypted + i) = *(data + i) ^ *(key + i % keyLen);
+    size_t i;
+    for(i = 0; i < dataLen; i++)
+        *(encrypted + i) = *(data + i) ^ *(key + i % keyLen);
 }
 
 
 CELL * p_encrypt(CELL * params)
 {
-char * data;
-char * key;
-char * dataEncrypted;
-CELL * encrypted;
-size_t dataLen, keyLen;
+    char * data;
+    char * key;
+    char * dataEncrypted;
+    CELL * encrypted;
+    size_t dataLen, keyLen;
 
-getStringSize(params, &data, &dataLen, TRUE);
-getStringSize(params->next, &key, &keyLen, TRUE);
+    getStringSize(params, &data, &dataLen, TRUE);
+    getStringSize(params->next, &key, &keyLen, TRUE);
 
-if(!keyLen) return(errorProcExt(ERR_STRING_EXPECTED, params->next));
+    if(!keyLen) return(errorProcExt(ERR_STRING_EXPECTED, params->next));
 
-dataEncrypted = (char *)allocMemory(dataLen + 1);
-*(dataEncrypted + dataLen) = 0;
+    dataEncrypted = (char *)allocMemory(dataLen + 1);
+    *(dataEncrypted + dataLen) = 0;
 
-encryptPad(dataEncrypted, data, key, dataLen, keyLen);
+    encryptPad(dataEncrypted, data, key, dataLen, keyLen);
 
-encrypted = getCell(CELL_STRING);
-encrypted->contents = (UINT)dataEncrypted;
-encrypted->aux = dataLen + 1;
+    encrypted = getCell(CELL_STRING);
+    encrypted->contents = (UINT)dataEncrypted;
+    encrypted->aux = dataLen + 1;
 
-return(encrypted);
+    return(encrypted);
 }
 
 
@@ -1194,80 +1194,80 @@ void fastFourierTransform(double data[], unsigned int  nn, int isign);
 
 CELL * p_fft(CELL * params)
 {
-return fft(params, 1);
+    return fft(params, 1);
 }
 
 
 CELL * p_ifft(CELL * params)
 {
-return fft(params, -1);
+    return fft(params, -1);
 }
 
 CELL * fft(CELL * params, int isign)
 {
-CELL * listData;
-CELL * list;
-CELL * cell;
-double * data;
-unsigned int i, n, N;
+    CELL * listData;
+    CELL * list;
+    CELL * cell;
+    double * data;
+    unsigned int i, n, N;
 
-getListHead(params, &listData);
+    getListHead(params, &listData);
 
-n = listlen(listData);
+    n = listlen(listData);
 
-N = 1;
-while(N < n) N <<= 1;
+    N = 1;
+    while(N < n) N <<= 1;
 
-data = (double *)allocMemory(N * 2 * sizeof(double));
-list = listData;
-for(i = 0; i < n*2; i+=2)
+    data = (double *)allocMemory(N * 2 * sizeof(double));
+    list = listData;
+    for(i = 0; i < n*2; i+=2)
     {
-    if(isNumber(list->type))
+        if(isNumber(list->type))
         {
-        data[i] = getDirectFloat(list);
-        data[i+1] = (double)0.0;
-        list = list->next;
-        continue;
+            data[i] = getDirectFloat(list);
+            data[i+1] = (double)0.0;
+            list = list->next;
+            continue;
         }
 
-    if(list->type != CELL_EXPRESSION)
+        if(list->type != CELL_EXPRESSION)
         {
-        freeMemory(data);
-        return(errorProcExt(ERR_LIST_OR_NUMBER_EXPECTED, list));
+            freeMemory(data);
+            return(errorProcExt(ERR_LIST_OR_NUMBER_EXPECTED, list));
         }
 
-    cell = (CELL *)list->contents;
-    data[i] = getDirectFloat(cell);
-    data[i+1] = getDirectFloat(cell->next);
-    list= list->next;
+        cell = (CELL *)list->contents;
+        data[i] = getDirectFloat(cell);
+        data[i+1] = getDirectFloat(cell->next);
+        list= list->next;
     }
     
 
-for(i = n * 2; i < N * 2; i++)
-    data[i] = 0.0;
+    for(i = n * 2; i < N * 2; i++)
+        data[i] = 0.0;
 
-fastFourierTransform(data, N, isign);
+    fastFourierTransform(data, N, isign);
 
-list = listData = getCell(CELL_EXPRESSION);
-if(isign == -1) 
-    for(i = 0; i < n * 2; i++) data[i] = data[i]/N;
+    list = listData = getCell(CELL_EXPRESSION);
+    if(isign == -1) 
+        for(i = 0; i < n * 2; i++) data[i] = data[i]/N;
 
-list->contents = (UINT)makeListFromFloats(data[0], data[1]);
-list = (CELL*)list->contents;
-for(i = 2; i < N * 2; i += 2)
+    list->contents = (UINT)makeListFromFloats(data[0], data[1]);
+    list = (CELL*)list->contents;
+    for(i = 2; i < N * 2; i += 2)
     {
-    list->next = makeListFromFloats(data[i], data[i+1]);
-    list = list->next;
+        list->next = makeListFromFloats(data[i], data[i+1]);
+        list = list->next;
     }
 
-freeMemory(data);
+    freeMemory(data);
 
-return(listData);
+    return(listData);
 }
 
 
 CELL * makeListFromFloats(double num1, double num2)
-    {
+{
     CELL * cell;
     CELL * list;
 
@@ -1276,7 +1276,7 @@ CELL * makeListFromFloats(double num1, double num2)
     cell = (CELL *)list->contents;
     cell->next = stuffFloat(num2);
     return(list);
-    }
+}
 
 
 /* Fast Fourier Transform 
@@ -1292,57 +1292,57 @@ CELL * makeListFromFloats(double num1, double num2)
 
 void fastFourierTransform(double data[], unsigned int nn, int isign)
 {
-unsigned int n, mmax, m, j, istep, i;
-double wtemp, wr, wpr, wpi, wi, theta;
-double tempr, tempi;
+    unsigned int n, mmax, m, j, istep, i;
+    double wtemp, wr, wpr, wpi, wi, theta;
+    double tempr, tempi;
 
-n = nn << 1;
-j = 1;
+    n = nn << 1;
+    j = 1;
 
-for(i = 1; i < n; i += 2)
+    for(i = 1; i < n; i += 2)
     {
-    if(j > i)
+        if(j > i)
         {
-        SWAP(data[j-1], data[i-1]);
-        SWAP(data[j], data[i]);
+            SWAP(data[j-1], data[i-1]);
+            SWAP(data[j], data[i]);
         }
-    m = n >> 1;
-    while(m >= 2 && j > m)
+        m = n >> 1;
+        while(m >= 2 && j > m)
         {
-        j -= m;
-        m >>= 1;
+            j -= m;
+            m >>= 1;
         }
-    j += m;
+        j += m;
     }
 
 
-mmax = 2;
-while(n > mmax)
+    mmax = 2;
+    while(n > mmax)
     {
-    istep = mmax << 1;
-    theta = isign * (6.28318530717959/mmax);
-    wtemp = sin(0.5 * theta);
-    wpr = -2.0 * wtemp * wtemp;
-    wpi = sin(theta);
-    wr = 1.0;
-    wi = 0.0;
-    for(m = 1; m < mmax; m += 2)
+        istep = mmax << 1;
+        theta = isign * (6.28318530717959/mmax);
+        wtemp = sin(0.5 * theta);
+        wpr = -2.0 * wtemp * wtemp;
+        wpi = sin(theta);
+        wr = 1.0;
+        wi = 0.0;
+        for(m = 1; m < mmax; m += 2)
         {
-        for(i = m; i <= n; i += istep)
+            for(i = m; i <= n; i += istep)
             {   
-            j = i + mmax;
-            tempr = wr * data[j-1] - wi * data[j];
-            tempi = wr * data[j] + wi * data[j-1];
-            data[j-1] = data[i-1] - tempr;
-            data[j] = data[i] - tempi;
-            data[i-1] += tempr;
-            data[i] += tempi;
+                j = i + mmax;
+                tempr = wr * data[j-1] - wi * data[j];
+                tempi = wr * data[j] + wi * data[j-1];
+                data[j-1] = data[i-1] - tempr;
+                data[j] = data[i] - tempi;
+                data[i-1] += tempr;
+                data[i] += tempi;
             }
-        wtemp = wr;
-        wr = wtemp * wpr - wi * wpi + wr;
-        wi = wi * wpr + wtemp * wpi + wi;
+            wtemp = wr;
+            wr = wtemp * wpr - wi * wpi + wr;
+            wi = wi * wpr + wtemp * wpi + wi;
         }
-    mmax = istep;
+        mmax = istep;
     }
 }
 
@@ -1354,135 +1354,135 @@ while(n > mmax)
 
 double getRandom(double offset, double scale, int type)
 {
-int i;
-double randnum;
+    int i;
+    double randnum;
 
-if(type == DIST_RANDOM)
+    if(type == DIST_RANDOM)
     {
-    randnum = my_random();
-    return(scale * randnum/max_rand + offset);
+        randnum = my_random();
+        return(scale * randnum/max_rand + offset);
     }
 
-if(type == DIST_NORMAL)
+    if(type == DIST_NORMAL)
     {
-    randnum = 0.0;
-    for(i = 0; i < 12; i++)
-        randnum += my_random() % 1024;
-    return(scale * (randnum - 6144 + 6)/1024 + offset);
+        randnum = 0.0;
+        for(i = 0; i < 12; i++)
+            randnum += my_random() % 1024;
+        return(scale * (randnum - 6144 + 6)/1024 + offset);
     }
 
-return(0.0);
+    return(0.0);
 }
 
 CELL * randomDist(CELL * params, int type)
 {
-double randnum;
-size_t i;
-size_t n = 0;
-double scale = 1.0;
-double offset = 0.0;
-CELL * dist;
-CELL * cell;
+    double randnum;
+    size_t i;
+    size_t n = 0;
+    double scale = 1.0;
+    double offset = 0.0;
+    CELL * dist;
+    CELL * cell;
 
-if(params->type != CELL_NIL)
-    {
-    params = getFloat(params, &offset);
-    params = getFloat(params, &scale);
     if(params->type != CELL_NIL)
-        getInteger(params, (UINT*)&n);
-    }
-
-if( n == 0)
     {
-    randnum = getRandom(offset, scale, type);
-    return(stuffFloat(randnum));
+        params = getFloat(params, &offset);
+        params = getFloat(params, &scale);
+        if(params->type != CELL_NIL)
+            getInteger(params, (UINT*)&n);
     }
 
-dist = getCell(CELL_EXPRESSION);
-randnum = getRandom(offset, scale, type);
-dist->contents = (UINT)stuffFloat(randnum);
-cell = (CELL*)dist->contents;
-for(i = 1; i < n; i++)
+    if( n == 0)
     {
-    randnum = getRandom(offset, scale, type);
-    cell->next = stuffFloat(randnum);
-    cell = cell->next;
+        randnum = getRandom(offset, scale, type);
+        return(stuffFloat(randnum));
     }
 
-return(dist);
+    dist = getCell(CELL_EXPRESSION);
+    randnum = getRandom(offset, scale, type);
+    dist->contents = (UINT)stuffFloat(randnum);
+    cell = (CELL*)dist->contents;
+    for(i = 1; i < n; i++)
+    {
+        randnum = getRandom(offset, scale, type);
+        cell->next = stuffFloat(randnum);
+        cell = cell->next;
+    }
+
+    return(dist);
 }
 
 
 CELL * p_normal(CELL * params)
 {
-return(randomDist(params, DIST_NORMAL));
+    return(randomDist(params, DIST_NORMAL));
 }
 
 CELL * p_random(CELL * params)
 {
-return(randomDist(params, DIST_RANDOM));
+    return(randomDist(params, DIST_RANDOM));
 }
 
 CELL * p_randomize(CELL * params)
 {
-CELL * list;
-CELL * cell;
-CELL * * vector;
-size_t length, i, j;
-INT rnum;
-double scale;
+    CELL * list;
+    CELL * cell;
+    CELL * * vector;
+    size_t length, i, j;
+    INT rnum;
+    double scale;
 
-getListHead(params, &list);
+    getListHead(params, &list);
 
-if((length = listlen(list)) <= 1) 
-  return(makeCell(CELL_EXPRESSION, (UINT)copyList(list)));
+    if((length = listlen(list)) <= 1) 
+        return(makeCell(CELL_EXPRESSION, (UINT)copyList(list)));
  
 /* build index vector */
-cell = list; 
-vector = allocMemory(length * sizeof(UINT));
-for(i = 0; i < length; i++)
+    cell = list; 
+    vector = allocMemory(length * sizeof(UINT));
+    for(i = 0; i < length; i++)
     {
-    vector[i] = copyCell(cell);
-    vector[i]->next = (void *)i;
-    cell = cell->next;
+        vector[i] = copyCell(cell);
+        vector[i]->next = (void *)i;
+        cell = cell->next;
     }
 
 /* reorganize randomly */
 RANDOMIZE:
-for(i = 0; i < (length - 1); i++)
+    for(i = 0; i < (length - 1); i++)
     {
-    scale = length - i;
-    while((rnum = my_random()) == max_rand);
-    rnum = (scale * rnum)/max_rand;
-    j = i + rnum;
-    cell = vector[i];
-    vector[i] = vector[j];
-    vector[j] = cell;
+        scale = length - i;
+        while((rnum = my_random()) == max_rand);
+        rnum = (scale * rnum)/max_rand;
+        j = i + rnum;
+        cell = vector[i];
+        vector[i] = vector[j];
+        vector[j] = cell;
     }
 
 /* check that new sequence is different 
    for default no flag or nil flag */
-if(!getFlag(params->next))
+    if(!getFlag(params->next))
     {
-    for(i = 0; i < length; i++)
-        if(vector[i]->next != (void *)i) break;
+        for(i = 0; i < length; i++)
+            if(vector[i]->next != (void *)i) break;
   
-    if(i == length)  goto RANDOMIZE;
+        if(i == length)  goto RANDOMIZE;
     }
 
 /* relink the list */
-cell = list = getCell(CELL_EXPRESSION);
-cell->contents  = (UINT)vector[0];
-cell = (CELL *)cell->contents;
-for(i = 1; i < length; i++)
+    cell = list = getCell(CELL_EXPRESSION);
+    cell->contents  = (UINT)vector[0];
+    cell = (CELL *)cell->contents;
+    for(i = 1; i < length; i++)
     {
-    cell->next = vector[i];
-    cell = cell->next;
+        cell->next = vector[i];
+        cell = cell->next;
     }
-cell->next = nilCell;
-freeMemory(vector);
+    cell->next = nilCell;
+    freeMemory(vector);
 
-return(list);
+    return(list);
 }
 
 CELL * probability_x(CELL * params, int type);
@@ -1501,73 +1501,73 @@ double gcf(double a, double x, double gln);
 
 CELL * p_probabilityZ(CELL * params)
 {
-double z;
-double p;
+    double z;
+    double p;
 
-getFloat(params, &z);
+    getFloat(params, &z);
 
-p = 0.5 + erf(z/SQRT2) / 2.0;
+    p = 0.5 + erf(z/SQRT2) / 2.0;
 
-return(stuffFloat(p));
+    return(stuffFloat(p));
 }
 
 
 CELL * p_criticalZ(CELL * params)
 {
-double p;
-double sign = 1.0;
+    double p;
+    double sign = 1.0;
 #define Z_EPSILON 0.000001   /* Accuracy of Z approximation */
-double minZ = 0.0;
-double maxZ = 6.0;
-double Zval;
-double Z;
+    double minZ = 0.0;
+    double maxZ = 6.0;
+    double Zval;
+    double Z;
         
-getFloat(params, &p);
+    getFloat(params, &p);
 
-if (p < 0.5)
+    if (p < 0.5)
     {
-    p = 1.0 - p;
-    sign = -1.0;
+        p = 1.0 - p;
+        sign = -1.0;
     }
         
-Zval = 2.0;    /* fair first value */
-while ((maxZ - minZ) > Z_EPSILON)
+    Zval = 2.0;    /* fair first value */
+    while ((maxZ - minZ) > Z_EPSILON)
     {
-    if ( (0.5 + erf(Zval/SQRT2) / 2.0) < p) minZ = Zval;
-    else maxZ = Zval;
-    Zval = (maxZ + minZ) * 0.5;
+        if ( (0.5 + erf(Zval/SQRT2) / 2.0) < p) minZ = Zval;
+        else maxZ = Zval;
+        Zval = (maxZ + minZ) * 0.5;
     }
 
-Z = (Zval > 5.999999) ? sign * 6.0 : Zval * sign;
+    Z = (Zval > 5.999999) ? sign * 6.0 : Zval * sign;
 
-return(stuffFloat(Z));
+    return(stuffFloat(Z));
 }
 
 
 double probChi2(double chi2, UINT df)
 {
-return(gammap(df/2.0, chi2/2.0));
+    return(gammap(df/2.0, chi2/2.0));
 }
 
 
 double probT(double t, UINT df)
 {
-double bta;
+    double bta;
 
-bta = betai(df/2.0, 0.5, 1.0/(1.0 + t*t/df));
-if(t > 0.0) return(1.0 - 0.5 * bta);
-else if(t < 0.0) return(0.5 * bta);
-return(0.5);
+    bta = betai(df/2.0, 0.5, 1.0/(1.0 + t*t/df));
+    if(t > 0.0) return(1.0 - 0.5 * bta);
+    else if(t < 0.0) return(0.5 * bta);
+    return(0.5);
 }
 
 double probF(double f, UINT df1, UINT df2)
 {
-double prob;
+    double prob;
 
-prob = 2.0 * betai(0.5 * df2, 0.5 * df1, df2 / (df2 + df1 * f));
+    prob = 2.0 * betai(0.5 * df2, 0.5 * df1, df2 / (df2 + df1 * f));
 
-if(prob > 1) prob = 2.0 - prob; 
-return(prob / 2.0);
+    if(prob > 1) prob = 2.0 - prob; 
+    return(prob / 2.0);
 }
 
 #define STAT_CHI2 1
@@ -1576,121 +1576,121 @@ return(prob / 2.0);
 
 CELL * p_probabilityChi2(CELL * params)
 {
-return(probability_x(params, STAT_CHI2));
+    return(probability_x(params, STAT_CHI2));
 }
 
 CELL * p_probabilityT(CELL * params)
 {
-return(probability_x(params, STAT_T));
+    return(probability_x(params, STAT_T));
 }
 
 CELL * p_probabilityF(CELL * params)
 {
-return(probability_x(params, STAT_F));
+    return(probability_x(params, STAT_F));
 }
 
 
 CELL * probability_x(CELL * params, int type)
 {
-double x;
-UINT df1;
-UINT df2;
-double prob = 0.0;
+    double x;
+    UINT df1;
+    UINT df2;
+    double prob = 0.0;
 
-params = getFloat(params, &x);
-params = getInteger(params, &df1);
-if(type == STAT_F)
-    getInteger(params, &df2); 
+    params = getFloat(params, &x);
+    params = getInteger(params, &df1);
+    if(type == STAT_F)
+        getInteger(params, &df2); 
 
-switch(type)
+    switch(type)
     {
-    case STAT_CHI2:
-        prob = 1.0 - probChi2(x, df1);
-        break;
-    case STAT_T:
-        prob = 1.0 - probT(x, df1);
-        break;
-    case STAT_F:
-        prob = probF(x, df1, df2);
-        break;
-    default:
-        break;
+        case STAT_CHI2:
+            prob = 1.0 - probChi2(x, df1);
+            break;
+        case STAT_T:
+            prob = 1.0 - probT(x, df1);
+            break;
+        case STAT_F:
+            prob = probF(x, df1, df2);
+            break;
+        default:
+            break;
     }
 
-return(stuffFloat(prob));
+    return(stuffFloat(prob));
 }
 
 
 double critical_value(double p, UINT df1, UINT df2, double max_val, int type)
 {
 #define NEWTON_EPSILON 0.000001   /* Accuracy of Newton approximation */
-double minval = 0.0;
-double maxval = max_val;
-double critval;
-double prob = 0.0;
+    double minval = 0.0;
+    double maxval = max_val;
+    double critval;
+    double prob = 0.0;
 
-if (p <= 0.0) return 0.0;
-else if (p >= 1.0) return maxval;
+    if (p <= 0.0) return 0.0;
+    else if (p >= 1.0) return maxval;
     
-critval = (df1 + df2) / sqrt(p);    /* fair first value */
-while ((maxval - minval) > NEWTON_EPSILON)
+    critval = (df1 + df2) / sqrt(p);    /* fair first value */
+    while ((maxval - minval) > NEWTON_EPSILON)
     {
-    switch(type)
+        switch(type)
         {
-        case STAT_CHI2:
-            prob = probChi2(critval, df1);
-            break;
-        case STAT_T: 
-            prob = probT(critval, df1);
-            break;
-        case STAT_F:
-            prob = 1.0 - probF(critval, df1, df2);
-            break;
-        default:
-            break;
+            case STAT_CHI2:
+                prob = probChi2(critval, df1);
+                break;
+            case STAT_T: 
+                prob = probT(critval, df1);
+                break;
+            case STAT_F:
+                prob = 1.0 - probF(critval, df1, df2);
+                break;
+            default:
+                break;
         }
-    if (prob < p) minval = critval;
-    else maxval = critval;
-    critval = (maxval + minval) * 0.5;
+        if (prob < p) minval = critval;
+        else maxval = critval;
+        critval = (maxval + minval) * 0.5;
     }
 
-return critval;
+    return critval;
 }
 
 
 CELL * criticalX(CELL * params, int type)
 {
-double p;
-UINT df1;
-UINT df2 = 0;
-double x;
+    double p;
+    UINT df1;
+    UINT df2 = 0;
+    double x;
 
-params = getFloat(params, &p);
-params = getInteger(params, &df1);
-if(type == STAT_F) getInteger(params, &df2);
+    params = getFloat(params, &p);
+    params = getInteger(params, &df1);
+    if(type == STAT_F) getInteger(params, &df2);
 
-x = critical_value((1.0 - p), df1, df2, 99999.0, type);
+    x = critical_value((1.0 - p), df1, df2, 99999.0, type);
 
-if(x < NEWTON_EPSILON) x = 0.0;
+    if(x < NEWTON_EPSILON) x = 0.0;
 
-return(stuffFloat(x));
+    return(stuffFloat(x));
 }
 
 
 CELL * p_criticalChi2(CELL  * params)
 {
-return(criticalX(params, STAT_CHI2));
+    return(criticalX(params, STAT_CHI2));
 }
 
 CELL * p_criticalT(CELL * params)
 {
-return(criticalX(params, STAT_T));
+    return(criticalX(params, STAT_T));
 }
 
 
 CELL * p_criticalF(CELL  * params)
 {
-return(criticalX(params, STAT_F));
+    return(criticalX(params, STAT_F));
 }
 
 /* Built-in versions for random() and srandom() are used only 
@@ -1712,37 +1712,37 @@ int my_random_flag = 0; /* if not set, call libc version */
 
 void my_srandom(uint32_t seed)
 {
-int i;
+    int i;
 
-if(my_random_flag == 0) srandom(seed);
-else 
+    if(my_random_flag == 0) srandom(seed);
+    else 
     {
-    randseed = seed;
-    for (i = 0; i < nshuff; i++)
-        my_random();
+        randseed = seed;
+        for (i = 0; i < nshuff; i++)
+            my_random();
     }
 }
 
 uint32_t my_random()
 {
-int32_t x, hi, lo, t;
+    int32_t x, hi, lo, t;
 
-if(my_random_flag == 0) return(random());
+    if(my_random_flag == 0) return(random());
 
 /*
-* Compute x[n + 1] = (7^5 * x[n]) mod (2^31 - 1).
-* From "Random number generators: good ones are hard to find",
-* Park and Miller, Communications of the ACM, vol. 31, no. 10,
-* October 1988, p. 1195. (from FreeBSD code base)
-*/
+ * Compute x[n + 1] = (7^5 * x[n]) mod (2^31 - 1).
+ * From "Random number generators: good ones are hard to find",
+ * Park and Miller, Communications of the ACM, vol. 31, no. 10,
+ * October 1988, p. 1195. (from FreeBSD code base)
+ */
 
-if ((x = randseed) == 0) x = 123459876;
-hi = x / 127773;
-lo = x % 127773;
-t = 16807 * lo - 2836 * hi;
-if (t < 0) t += 0x7fffffff;
-randseed = t;
-return (t);
+    if ((x = randseed) == 0) x = 123459876;
+    hi = x / 127773;
+    lo = x % 127773;
+    t = 16807 * lo - 2836 * hi;
+    if (t < 0) t += 0x7fffffff;
+    randseed = t;
+    return (t);
 }
 
 #ifdef ALTERNATIVE_MY_RANDOM /* used for EMSCRIPTEN before v1.29 */
@@ -1751,15 +1751,15 @@ int  m_z = 0x23456789;    /* must not be zero, nor 0x9068ffff */
  
 long int random(void)
 {
-m_z = 36969 * (m_z & 65535) + (m_z >> 16);
-m_w = 18000 * (m_w & 65535) + (m_w >> 16);
-return (((m_z << 16) + m_w)  & 0x7fffffff);  /* 31-bit result */
+    m_z = 36969 * (m_z & 65535) + (m_z >> 16);
+    m_w = 18000 * (m_w & 65535) + (m_w >> 16);
+    return (((m_z << 16) + m_w)  & 0x7fffffff);  /* 31-bit result */
 }
 
 void srandom(unsigned int init)
 {
-m_z = init;
-m_w = 3 * init;
+    m_z = init;
+    m_w = 3 * init;
 }
 #endif
 
@@ -1770,66 +1770,66 @@ static int paramError;
 
 CELL * p_beta(CELL * params)
 {
-double a, b, beta;
+    double a, b, beta;
 
-params = getFloat(params, &a);
-getFloat(params, &b);
+    params = getFloat(params, &a);
+    getFloat(params, &b);
 
-beta = exp(gammaln(a) + gammaln(b) - gammaln(a+b));
+    beta = exp(gammaln(a) + gammaln(b) - gammaln(a+b));
 
-return(stuffFloat(beta));
+    return(stuffFloat(beta));
 }
 
 CELL * p_betai(CELL * params)
 {
-double a, b, x, result;
+    double a, b, x, result;
 
-params = getFloat(params, &x);
-params = getFloat(params, &a);
-getFloat(params, &b);
+    params = getFloat(params, &x);
+    params = getFloat(params, &a);
+    getFloat(params, &b);
 
-paramError = 0;
+    paramError = 0;
 
-result = betai(a,b,x);
+    result = betai(a,b,x);
 
-if(paramError)
-    return(nilCell);
+    if(paramError)
+        return(nilCell);
     
-return(stuffFloat(result));
+    return(stuffFloat(result));
 }
 
 
 CELL * p_gammaln(CELL * params)
 {
-double x, result;
+    double x, result;
 
-getFloat(params, &x);
+    getFloat(params, &x);
 
-paramError = 0;
+    paramError = 0;
 
-result = gammaln(x);
+    result = gammaln(x);
 
-if(paramError)
-    return(nilCell);
+    if(paramError)
+        return(nilCell);
     
-return(stuffFloat(result));
+    return(stuffFloat(result));
 }
 
 
 CELL * p_gammai(CELL * params)
 {
-double a, x, result;
+    double a, x, result;
 
-params = getFloat(params, &a);
-getFloat(params, &x);
+    params = getFloat(params, &a);
+    getFloat(params, &x);
 
-result = gammap(a, x);
+    result = gammap(a, x);
 
 /*
-printf("in p_gammai() result = %f\n", result);
+  printf("in p_gammai() result = %f\n", result);
 */
 
-return(stuffFloat(result));
+    return(stuffFloat(result));
 }
 
 
@@ -1844,84 +1844,84 @@ return(stuffFloat(result));
 
 double betai(double a, double b, double x)
 {
-double bt;
+    double bt;
 
-if (x < 0.0 || x > 1.0) 
+    if (x < 0.0 || x > 1.0) 
     {
-    paramError = 1;
-    return(0.0);
+        paramError = 1;
+        return(0.0);
     }
 
-if (x == 0.0 || x == 1.0) 
-    bt = 0.0;
-else
-    bt = exp(gammaln(a+b)-gammaln(a)-gammaln(b)+a*log(x)+b*log(1.0-x));
+    if (x == 0.0 || x == 1.0) 
+        bt = 0.0;
+    else
+        bt = exp(gammaln(a+b)-gammaln(a)-gammaln(b)+a*log(x)+b*log(1.0-x));
     
-if (x < (a+1.0)/(a+b+2.0))
-    return (bt * betacf(a,b,x) / a);
-else
-    return (1.0 - bt * betacf(b,a,1.0-x) / b);
+    if (x < (a+1.0)/(a+b+2.0))
+        return (bt * betacf(a,b,x) / a);
+    else
+        return (1.0 - bt * betacf(b,a,1.0-x) / b);
 }
 
 
 double betacf(double a, double b, double x)
 {
-double qap,qam,qab,em,tem,d;
-double bz,bm,bp,bpp;
-double az,am,ap,app,aold;
-int m;
+    double qap,qam,qab,em,tem,d;
+    double bz,bm,bp,bpp;
+    double az,am,ap,app,aold;
+    int m;
 
-bm = az = am = 1.0;
-qab=a+b;
-qap=a+1.0;
-qam=a-1.0;
-bz=1.0-qab*x/qap;
-for (m=1;m<=ITMAX;m++) 
+    bm = az = am = 1.0;
+    qab=a+b;
+    qap=a+1.0;
+    qam=a-1.0;
+    bz=1.0-qab*x/qap;
+    for (m=1;m<=ITMAX;m++) 
     {
-    em=(double) m;
-    tem=em+em;
-    d=em*(b-em)*x/((qam+tem)*(a+tem));
-    ap=az+d*am;
-    bp=bz+d*bm;
-    d = -(a+em)*(qab+em)*x/((qap+tem)*(a+tem));
-    app=ap+d*az;
-    bpp=bp+d*bz;
-    aold=az;
-    am=ap/bpp;
-    bm=bp/bpp;
-    az=app/bpp;
-    bz=1.0;
-    if (fabs(az-aold) < (EPS7 * fabs(az))) return az;
+        em=(double) m;
+        tem=em+em;
+        d=em*(b-em)*x/((qam+tem)*(a+tem));
+        ap=az+d*am;
+        bp=bz+d*bm;
+        d = -(a+em)*(qab+em)*x/((qap+tem)*(a+tem));
+        app=ap+d*az;
+        bpp=bp+d*bz;
+        aold=az;
+        am=ap/bpp;
+        bm=bp/bpp;
+        az=app/bpp;
+        bz=1.0;
+        if (fabs(az-aold) < (EPS7 * fabs(az))) return az;
     }
 
-return(paramError = 1);
+    return(paramError = 1);
 }
 
 
 double gammaln(double xx)
 {
-double x,y,tmp,ser;
-static double cof[6] = {
- 76.18009172947146,
--86.50532032941677,
- 24.01409824083091,
- -1.231739572450155,
-  0.1208650973866179e-2,
- -0.5395239384953e-5};
+    double x,y,tmp,ser;
+    static double cof[6] = {
+        76.18009172947146,
+        -86.50532032941677,
+        24.01409824083091,
+        -1.231739572450155,
+        0.1208650973866179e-2,
+        -0.5395239384953e-5};
 
-int j;
+    int j;
 
-if(xx == 0.0)
-    fatalError(ERR_INVALID_PARAMETER_0, NULL, 0);
+    if(xx == 0.0)
+        fatalError(ERR_INVALID_PARAMETER_0, NULL, 0);
 
-y=x=xx;
-tmp=x+5.5;
-tmp -= (x+0.5)*log(tmp);
-ser=1.000000000190015;
+    y=x=xx;
+    tmp=x+5.5;
+    tmp -= (x+0.5)*log(tmp);
+    ser=1.000000000190015;
 
-for (j=0;j<=5;j++) ser += cof[j]/++y;
+    for (j=0;j<=5;j++) ser += cof[j]/++y;
     
-return -tmp+log(2.5066282746310005*ser/x);
+    return -tmp+log(2.5066282746310005*ser/x);
 }
 
 
@@ -1938,67 +1938,67 @@ return -tmp+log(2.5066282746310005*ser/x);
 */
 double gammap(double a, double x)
 {
-double gln;
-gln = gammaln(a);
+    double gln;
+    gln = gammaln(a);
 #ifdef DEBUG
 /* horrible error on LLVM 32-bit Apple update Oct 7, 2010, fine on LLVM 64-bit
    result is fine in printf() but gets passed up as NaN to gammai() by return() */
-printf("in gammap() result %f\n", (x < (a + 1.0)) ? gser(a, x, gln) : (1.0 - gcf(a ,x , gln)));
+    printf("in gammap() result %f\n", (x < (a + 1.0)) ? gser(a, x, gln) : (1.0 - gcf(a ,x , gln)));
 #endif
-return( (x < (a + 1.0)) ? gser(a, x, gln) : (1.0 - gcf(a ,x , gln)) );
+    return( (x < (a + 1.0)) ? gser(a, x, gln) : (1.0 - gcf(a ,x , gln)) );
 }
 
 
 static double gser(double a, double x, double gln)
 {
-double ap, del, sum;
-int n;
+    double ap, del, sum;
+    int n;
 
-ap = a;
-del = 1.0/a;
-sum = del;
+    ap = a;
+    del = 1.0/a;
+    sum = del;
 
-for (n = 1 ; n <= ITMAX ; n++)
+    for (n = 1 ; n <= ITMAX ; n++)
     {
-    ++ap;
-    del *= x / ap;
-    sum += del;
-    if (fabs(del) < fabs(sum) * EPS9)
-    return sum * exp(-x + a * log(x) - gln);
+        ++ap;
+        del *= x / ap;
+        sum += del;
+        if (fabs(del) < fabs(sum) * EPS9)
+            return sum * exp(-x + a * log(x) - gln);
     }
 
-return sum * exp(-x + a * log(x) - gln);
+    return sum * exp(-x + a * log(x) - gln);
 }
 
 
 double gcf(double a, double x, double gln)
 {
-double b, c, d, h, an, del;
-int i;
+    double b, c, d, h, an, del;
+    int i;
 
-b = x + 1 - a;
-c = 1.0/FPMIN;
-d = 1.0/b;
-h = d;
+    b = x + 1 - a;
+    c = 1.0/FPMIN;
+    d = 1.0/b;
+    h = d;
 
-for (i = 1 ; i <= ITMAX ; i++)
+    for (i = 1 ; i <= ITMAX ; i++)
     {
-    an = -i * (i - a);
-    b += 2;
+        an = -i * (i - a);
+        b += 2;
     
-    d = an * d + b;
-    if (fabs(d) < FPMIN) d = FPMIN;
+        d = an * d + b;
+        if (fabs(d) < FPMIN) d = FPMIN;
 
-    c = b + an/c;
-    if (fabs(c) < FPMIN) c = FPMIN;
+        c = b + an/c;
+        if (fabs(c) < FPMIN) c = FPMIN;
 
-    d = 1.0/d;
-    del = d * c;
-    h *= del;
-    if (fabs(del-1.0) < EPS9) break;
+        d = 1.0/d;
+        del = d * c;
+        h *= del;
+        if (fabs(del-1.0) < EPS9) break;
     }
 
-return exp(-x + a * log(x) - gln) * h;
+    return exp(-x + a * log(x) - gln) * h;
 }
 
 
@@ -2006,130 +2006,130 @@ return exp(-x + a * log(x) - gln) * h;
 
 CELL * p_binomial(CELL * params)
 {
-INT n, k;
-double bico, p, binomial;
+    INT n, k;
+    double bico, p, binomial;
 
-params = getInteger(params, (UINT *)&n);
-params = getInteger(params, (UINT *)&k);
-getFloat(params, &p);
+    params = getInteger(params, (UINT *)&n);
+    params = getInteger(params, (UINT *)&k);
+    getFloat(params, &p);
 
-bico = exp(gammaln(n + 1.0) - gammaln(k + 1.0) - gammaln(n - k + 1.0));
+    bico = exp(gammaln(n + 1.0) - gammaln(k + 1.0) - gammaln(n - k + 1.0));
 
-binomial = bico * pow(p, (double)k) * pow(1.0 - p, (double)(n - k));
+    binomial = bico * pow(p, (double)k) * pow(1.0 - p, (double)(n - k));
 
-return(stuffFloat(binomial));
+    return(stuffFloat(binomial));
 }
 
 /* -------------------------------------------------------------------------------- */
 
 CELL * p_series(CELL * params)
 {
-double fromFlt, factFlt;
-ssize_t count, i;
-CELL * series;
-CELL * cell;
-CELL * pCell;
-CELL * expr;
-CELL * cellIdx;
-UINT * resultIdxSave;
-jmp_buf errorJumpSave;
-int errNo;
+    double fromFlt, factFlt;
+    ssize_t count, i;
+    CELL * series;
+    CELL * cell;
+    CELL * pCell;
+    CELL * expr;
+    CELL * cellIdx;
+    UINT * resultIdxSave;
+    jmp_buf errorJumpSave;
+    int errNo;
 
-cell = evaluateExpression(params);
-pCell = evaluateExpression(params->next);
-params = params->next;
-getInteger(params->next, (UINT *)&count);
+    cell = evaluateExpression(params);
+    pCell = evaluateExpression(params->next);
+    params = params->next;
+    getInteger(params->next, (UINT *)&count);
 
-series = getCell(CELL_EXPRESSION);
-if(count <= 0) return(series);
+    series = getCell(CELL_EXPRESSION);
+    if(count <= 0) return(series);
 
-if(isNumber(pCell->type))
+    if(isNumber(pCell->type))
     {
-    if(!isNumber(cell->type))
-        return(errorProcExt(ERR_NUMBER_EXPECTED, cell));
-    fromFlt = getDirectFloat(cell);
-    factFlt = getDirectFloat(pCell);
-    cell = copyCell(cell);
-    series->contents = (UINT)cell;
-    for(i = 1; i < count; i++)
-        {
-        fromFlt *= factFlt;
-        cell->next = stuffFloat(fromFlt);
-        cell = cell->next;
-        }
-    }
-else /* assumes lambda or primitive */
-    {
-    cellIdx = initIteratorIndex();
-    addList(series, copyCell(cell));
-    resultIdxSave = resultStackIdx;
-    memcpy(errorJumpSave, errorJump, sizeof(jmp_buf));
-    if((errNo = setjmp(errorJump)) != 0)
-        {
-        memcpy(errorJump, errorJumpSave, sizeof(jmp_buf));
-        deleteList(series);
-        longjmp(errorJump, errNo);
-        }
-
-    for(i = 1; i < count; i++)
-        {
+        if(!isNumber(cell->type))
+            return(errorProcExt(ERR_NUMBER_EXPECTED, cell));
+        fromFlt = getDirectFloat(cell);
+        factFlt = getDirectFloat(pCell);
         cell = copyCell(cell);
-        cleanupResults(resultIdxSave);  
-        expr = makeCell(CELL_EXPRESSION, (UINT)copyCell(pCell));
-        ((CELL *)expr->contents)->next = cell;
-        pushResult(expr);
-        cell = evaluateExpression(expr);
-        addList(series, copyCell(cell));
-        if(cellIdx->type == CELL_LONG) cellIdx->contents += 1;
+        series->contents = (UINT)cell;
+        for(i = 1; i < count; i++)
+        {
+            fromFlt *= factFlt;
+            cell->next = stuffFloat(fromFlt);
+            cell = cell->next;
         }
-    recoverIteratorIndex(cellIdx);
-    memcpy(errorJump, errorJumpSave, sizeof(jmp_buf));
+    }
+    else /* assumes lambda or primitive */
+    {
+        cellIdx = initIteratorIndex();
+        addList(series, copyCell(cell));
+        resultIdxSave = resultStackIdx;
+        memcpy(errorJumpSave, errorJump, sizeof(jmp_buf));
+        if((errNo = setjmp(errorJump)) != 0)
+        {
+            memcpy(errorJump, errorJumpSave, sizeof(jmp_buf));
+            deleteList(series);
+            longjmp(errorJump, errNo);
+        }
+
+        for(i = 1; i < count; i++)
+        {
+            cell = copyCell(cell);
+            cleanupResults(resultIdxSave);  
+            expr = makeCell(CELL_EXPRESSION, (UINT)copyCell(pCell));
+            ((CELL *)expr->contents)->next = cell;
+            pushResult(expr);
+            cell = evaluateExpression(expr);
+            addList(series, copyCell(cell));
+            if(cellIdx->type == CELL_LONG) cellIdx->contents += 1;
+        }
+        recoverIteratorIndex(cellIdx);
+        memcpy(errorJump, errorJumpSave, sizeof(jmp_buf));
     }
 
-series->aux = (UINT)cell; /* last element optimization */
-return(series);
+    series->aux = (UINT)cell; /* last element optimization */
+    return(series);
 }
 
 /* ------------------------------- prime numbers ---------------------------- */
 
 /*
-* adapted for newLISP from the following code:
-*
-* factor.c -- print prime factorization of a number
-* Ray Gardner -- 1985 -- public domain
-* Modified Feb. 1989 by Thad Smith > public domain
-*
-*/
+ * adapted for newLISP from the following code:
+ *
+ * factor.c -- print prime factorization of a number
+ * Ray Gardner -- 1985 -- public domain
+ * Modified Feb. 1989 by Thad Smith > public domain
+ *
+ */
 
 CELL * p_factor (CELL * params)
 {
-INT64 d, n;
-INT k;
-CELL * factList;
-int i;
+    INT64 d, n;
+    INT k;
+    CELL * factList;
+    int i;
 
-getInteger64Ext(params, &n, TRUE);
+    getInteger64Ext(params, &n, TRUE);
 
-if (n < 2) return(nilCell);
+    if (n < 2) return(nilCell);
       
-factList = getCell(CELL_EXPRESSION);
+    factList = getCell(CELL_EXPRESSION);
 
-d = 2;
-for (k = 0; (n % d) == 0; k++)
-    n /= d;
-for(i = 0; i < k; i++) addList(factList, stuffInteger64(d));
-      
-for (d = 3; d * d <= n; d += 2)
-    {
+    d = 2;
     for (k = 0; (n % d) == 0; k++)
         n /= d;
     for(i = 0; i < k; i++) addList(factList, stuffInteger64(d));
+      
+    for (d = 3; d * d <= n; d += 2)
+    {
+        for (k = 0; (n % d) == 0; k++)
+            n /= d;
+        for(i = 0; i < k; i++) addList(factList, stuffInteger64(d));
     }
 
-if (n > 1)
-    addList(factList, stuffInteger64(n));
+    if (n > 1)
+        addList(factList, stuffInteger64(n));
       
-return(factList);
+    return(factList);
 }
 
 /* see http://en.wikipedia.org/wiki/Euclidean_algorithm */
@@ -2139,94 +2139,94 @@ CELL * isZero(CELL * cell);
 
 CELL * p_gcd(CELL * params)
 { 
-INT64 m, n, r; 
-CELL * cell;
+    INT64 m, n, r; 
+    CELL * cell;
 #ifdef BIGINT
-CELL * x;
-CELL * y;
-UINT * resultIdxSave = resultStackIdx;
+    CELL * x;
+    CELL * y;
+    UINT * resultIdxSave = resultStackIdx;
 #endif
 
-cell = evaluateExpression(params);
-params = params->next;
+    cell = evaluateExpression(params);
+    params = params->next;
 
 #ifdef BIGINT
-if(cell->type == CELL_BIGINT)
+    if(cell->type == CELL_BIGINT)
     {
-    x = copyCell(cell);
-    NEXT_BIG_GCD:
-    y = p_bigInt(params);
-    cell = gcdBig(x, y);
-    cleanupResults(resultIdxSave);  
-    deleteList(x);
-    deleteList(y);
-    if(params->next != nilCell)
+        x = copyCell(cell);
+NEXT_BIG_GCD:
+        y = p_bigInt(params);
+        cell = gcdBig(x, y);
+        cleanupResults(resultIdxSave);  
+        deleteList(x);
+        deleteList(y);
+        if(params->next != nilCell)
         {
-        params = params->next;
-        x = cell;
-        goto NEXT_BIG_GCD;
+            params = params->next;
+            x = cell;
+            goto NEXT_BIG_GCD;
         }
-    *(int*)cell->contents = 1; /* abs */
-    return(cell);
+        *(int*)cell->contents = 1; /* abs */
+        return(cell);
     }
 #endif
 
-cell = getInteger64Ext(cell, &m, FALSE);
-while(params != nilCell)
+    cell = getInteger64Ext(cell, &m, FALSE);
+    while(params != nilCell)
     {
-    params = getInteger64Ext(params, &n, TRUE);
-    while (n != 0)
+        params = getInteger64Ext(params, &n, TRUE);
+        while (n != 0)
         {
-        r = n;
-        n = m % n;
-        m = r;
+            r = n;
+            n = m % n;
+            m = r;
         } 
     }
 
-if(m < 0) m = -m;
-return(stuffInteger64(m));
+    if(m < 0) m = -m;
+    return(stuffInteger64(m));
 } 
 
 
 /* for bigint use 
-(define (gcd-big a b)
-	(if (= b 0) a (gcd-big b (% a b))))
+   (define (gcd-big a b)
+   (if (= b 0) a (gcd-big b (% a b))))
 */
 
 #define NEW_BIG_GCD
 #ifdef NEW_BIG_GCD 
 CELL * gcdBig(CELL * a, CELL * b)
 {
-CELL * cell;
+    CELL * cell;
 
-while (isZero(b) == nilCell)
+    while (isZero(b) == nilCell)
     {
-    a->next = b;
-    cell = arithmetikOp(a, OP_MODULO);
-    a->next = nilCell;
-    pushResult(cell);
-    a = b;
-    b = cell; 
+        a->next = b;
+        cell = arithmetikOp(a, OP_MODULO);
+        a->next = nilCell;
+        pushResult(cell);
+        a = b;
+        b = cell; 
     }
 
-return(copyCell(a));
+    return(copyCell(a));
 }
 
 #else
 
 CELL * gcdBig(CELL * a, CELL * b)
 {
-CELL * cell;
-if(isZero(b) == trueCell) return(copyCell(a));
+    CELL * cell;
+    if(isZero(b) == trueCell) return(copyCell(a));
 
-a->next = b;
-b->next = nilCell;
+    a->next = b;
+    b->next = nilCell;
 
-cell = arithmetikOp(a, OP_MODULO);
-a->next = nilCell;
-pushResult(cell);
+    cell = arithmetikOp(a, OP_MODULO);
+    a->next = nilCell;
+    pushResult(cell);
 
-return(gcdBig(b, cell));
+    return(gcdBig(b, cell));
 }
 #endif
 
@@ -2235,146 +2235,146 @@ return(gcdBig(b, cell));
 
 CELL * p_pmt(CELL * params)
 {
-INT nper;
-double rate, pv;
-double fv = 0.0;
-double pmt = 0.0;
-double inc;
-INT type = 0;
+    INT nper;
+    double rate, pv;
+    double fv = 0.0;
+    double pmt = 0.0;
+    double inc;
+    INT type = 0;
 
-params = getFloat(params, &rate);
-params = getInteger(params, (UINT *)&nper);
-params = getFloat(params, &pv);
-if(params != nilCell)
+    params = getFloat(params, &rate);
+    params = getInteger(params, (UINT *)&nper);
+    params = getFloat(params, &pv);
+    if(params != nilCell)
     {
-    params = getFloat(params, &fv);
-    if(params != nilCell) getInteger(params, (UINT *)&type);
+        params = getFloat(params, &fv);
+        if(params != nilCell) getInteger(params, (UINT *)&type);
     }
 
-if(rate == 0)
-    pmt = (-pv - fv) / nper;
-else
+    if(rate == 0)
+        pmt = (-pv - fv) / nper;
+    else
     {
-    inc = pow(1 + rate, (double)nper);
-    pmt = - (pv * inc + fv) / ((1 + rate * type) * ((inc - 1) / rate));
+        inc = pow(1 + rate, (double)nper);
+        pmt = - (pv * inc + fv) / ((1 + rate * type) * ((inc - 1) / rate));
     }
   
-return stuffFloat(pmt);
+    return stuffFloat(pmt);
 }
 
 
 CELL * p_pv(CELL * params)
 {
-INT nper;
-double rate, pmt, pv;
-double fv = 0.0;
-double inc;
-INT type = 0;
+    INT nper;
+    double rate, pmt, pv;
+    double fv = 0.0;
+    double inc;
+    INT type = 0;
 
-params = getFloat(params, &rate);
-params = getInteger(params, (UINT *)&nper);
-params = getFloat(params, &pmt);
+    params = getFloat(params, &rate);
+    params = getInteger(params, (UINT *)&nper);
+    params = getFloat(params, &pmt);
 
-if(params != nilCell)
-    {
-    params = getFloat(params, &fv);
     if(params != nilCell)
-        getInteger(params, (UINT *)&type);
+    {
+        params = getFloat(params, &fv);
+        if(params != nilCell)
+            getInteger(params, (UINT *)&type);
     }
 
-if(rate == 0)
-    pv = - pmt * nper - fv;
-else
+    if(rate == 0)
+        pv = - pmt * nper - fv;
+    else
     {
-    inc = pow(1 + rate, (double)nper);
-    pv = (-pmt * (1 + rate * type) * ((inc - 1) / rate) - fv) / inc;
+        inc = pow(1 + rate, (double)nper);
+        pv = (-pmt * (1 + rate * type) * ((inc - 1) / rate) - fv) / inc;
     }
   
-return stuffFloat(pv);
+    return stuffFloat(pv);
 }
 
 
 CELL * p_fv(CELL * params)
 {
-double rate, pmt, pv;
-INT nper, type;
-double inc, fv;
+    double rate, pmt, pv;
+    INT nper, type;
+    double inc, fv;
 
-params = getFloat(params, &rate);
-params = getInteger(params, (UINT *)&nper);
-params = getFloat(params, &pmt);
-params = getFloat(params, &pv);
-if(params != nilCell)
-    getInteger(params, (UINT *)&type);
-else type = 0;
+    params = getFloat(params, &rate);
+    params = getInteger(params, (UINT *)&nper);
+    params = getFloat(params, &pmt);
+    params = getFloat(params, &pv);
+    if(params != nilCell)
+        getInteger(params, (UINT *)&type);
+    else type = 0;
 
 
-if(rate == 0)
-    fv = - pmt * nper - pv;
-else
+    if(rate == 0)
+        fv = - pmt * nper - pv;
+    else
     {
-    inc = pow(1 + rate, (double)nper);
-    fv = -pmt * (1 + rate * type) * ((inc - 1) / rate) - pv * inc;
+        inc = pow(1 + rate, (double)nper);
+        fv = -pmt * (1 + rate * type) * ((inc - 1) / rate) - pv * inc;
     }
   
-return stuffFloat(fv);
+    return stuffFloat(fv);
 }
 
 
 CELL * p_nper(CELL * params)
 {
-double rate, pmt, pv;
-double fv = 0.0;
-double R, c, nper;
-INT type = 0;
+    double rate, pmt, pv;
+    double fv = 0.0;
+    double R, c, nper;
+    INT type = 0;
 
-params = getFloat(params, &rate);
-params = getFloat(params, &pmt);
-params = getFloat(params, &pv);
+    params = getFloat(params, &rate);
+    params = getFloat(params, &pmt);
+    params = getFloat(params, &pv);
 
-if(params != nilCell)
+    if(params != nilCell)
     {
-    params = getFloat(params, &fv);
-    if(params != nilCell) getInteger(params, (UINT *)&type);
+        params = getFloat(params, &fv);
+        if(params != nilCell) getInteger(params, (UINT *)&type);
     }
  
-if(rate == 0)
-    nper = (-pv - fv) / pmt;
-else if(rate > -1.0)
+    if(rate == 0)
+        nper = (-pv - fv) / pmt;
+    else if(rate > -1.0)
     {
-    R = 1.0 + rate;
-    c = pmt * (type ? R : 1.0) / rate;
-    nper = log((c - fv) / (c + pv)) / log(R);
+        R = 1.0 + rate;
+        c = pmt * (type ? R : 1.0) / rate;
+        nper = log((c - fv) / (c + pv)) / log(R);
     }
-else nper = sqrt(-1.0);   /* NaN */
+    else nper = sqrt(-1.0);   /* NaN */
 
 
-return stuffFloat(nper);
+    return stuffFloat(nper);
 }
 
 
 CELL * p_npv(CELL * params)
 {
-CELL * list;
-double rate, cashFlow, fNum;
-int count;
+    CELL * list;
+    double rate, cashFlow, fNum;
+    int count;
 
-params = getFloat(params, &rate);
-list = evaluateExpression(params);
-if(!isList(list->type))
-    return(errorProcExt(ERR_LIST_EXPECTED, params));
-list = (CELL *)list->contents;
+    params = getFloat(params, &rate);
+    list = evaluateExpression(params);
+    if(!isList(list->type))
+        return(errorProcExt(ERR_LIST_EXPECTED, params));
+    list = (CELL *)list->contents;
 
-cashFlow = 0.0;
-count = 0;
-while(list !=  nilCell)
+    cashFlow = 0.0;
+    count = 0;
+    while(list !=  nilCell)
     {
-    fNum = getDirectFloat(list);
-    cashFlow += fNum / pow((1.0 + rate), (double)++count);
-    list = list->next;
+        fNum = getDirectFloat(list);
+        cashFlow += fNum / pow((1.0 + rate), (double)++count);
+        list = list->next;
     }
 
-return stuffFloat(cashFlow);
+    return stuffFloat(cashFlow);
 }
 
 
@@ -2392,13 +2392,13 @@ return stuffFloat(cashFlow);
 
 double cfPv(int N, int times[], double amounts[], double rate)
 {
-double PV = 0.0;
-int t;
+    double PV = 0.0;
+    int t;
 
-for(t = 0; t < N; t++)
-    PV += amounts[t] / pow((1.0 + rate), (double)times[t]);
+    for(t = 0; t < N; t++)
+        PV += amounts[t] / pow((1.0 + rate), (double)times[t]);
 
-return(PV);
+    return(PV);
 }
 
 
@@ -2408,128 +2408,128 @@ return(PV);
 
 double irr(int N, int times[], double amounts[], double x2)
 {
-double est1, est2;
-double x1 = 0.0;
-double f, rtb, dx;
-double x_mid, f_mid;
-int i;
+    double est1, est2;
+    double x1 = 0.0;
+    double f, rtb, dx;
+    double x_mid, f_mid;
+    int i;
     
-est1 = cfPv(N, times, amounts,  x1);
-est2 = cfPv(N, times, amounts,  x2);
+    est1 = cfPv(N, times, amounts,  x1);
+    est2 = cfPv(N, times, amounts,  x2);
 
-for(i=0; i<MAX_ITERATIONS; i++)
+    for(i=0; i<MAX_ITERATIONS; i++)
     {
-    if(est1 * est2 < 0.0) break;
+        if(est1 * est2 < 0.0) break;
 
-    if(fabs(est1) < fabs(est2)) 
-        est1 = cfPv(N, times, amounts,  x1 += 1.6 * (x1 - x2));
+        if(fabs(est1) < fabs(est2)) 
+            est1 = cfPv(N, times, amounts,  x1 += 1.6 * (x1 - x2));
+        else 
+            est2 = cfPv(N, times, amounts,  x2 += 1.6 * (x2 - x1));
+    }
+    
+    if (est2 * est1 > 0.0) return (IRR_ERROR);
+
+    f = cfPv(N, times, amounts, x1);
+    dx=0;
+
+    if(f < 0.0) 
+    {
+        rtb = x1;
+        dx=x2-x1;
+    }
     else 
-        est2 = cfPv(N, times, amounts,  x2 += 1.6 * (x2 - x1));
-    }
-    
-if (est2 * est1 > 0.0) return (IRR_ERROR);
-
-f = cfPv(N, times, amounts, x1);
-dx=0;
-
-if(f < 0.0) 
     {
-    rtb = x1;
-    dx=x2-x1;
-    }
-else 
-    {
-    rtb = x2;
-    dx = x1-x2;     
+        rtb = x2;
+        dx = x1-x2;     
     };
 
-for(i = 0; i< MAX_ITERATIONS; i++)
+    for(i = 0; i< MAX_ITERATIONS; i++)
     {
-    dx *= 0.5;
-    x_mid = rtb + dx;
-    f_mid = cfPv(N, times, amounts, x_mid);
+        dx *= 0.5;
+        x_mid = rtb + dx;
+        f_mid = cfPv(N, times, amounts, x_mid);
 
-    if(f_mid <= 0.0)
-        rtb = x_mid;
+        if(f_mid <= 0.0)
+            rtb = x_mid;
 
-    if((fabs(f_mid) < PRECISION) || (fabs(dx) < PRECISION)) 
-        return x_mid;
+        if((fabs(f_mid) < PRECISION) || (fabs(dx) < PRECISION)) 
+            return x_mid;
     }; 
    
-return(IRR_ERROR);
+    return(IRR_ERROR);
 }
 
 CELL * p_irr(CELL * params)
 {
-CELL * amounts;
-CELL * times;
-CELL * list;
-double result;
-double guess = 0.5;
-double * amountsVec;
-int * timesVec;
-int i, N = 0;
-INT number;
+    CELL * amounts;
+    CELL * times;
+    CELL * list;
+    double result;
+    double guess = 0.5;
+    double * amountsVec;
+    int * timesVec;
+    int i, N = 0;
+    INT number;
 
-params = getListHead(params, &amounts);
-list = amounts;
-if(params != nilCell)
-    {
-    params = getListHead(params, &times);
+    params = getListHead(params, &amounts);
+    list = amounts;
     if(params != nilCell)
-        getFloat(params, &guess);
+    {
+        params = getListHead(params, &times);
+        if(params != nilCell)
+            getFloat(params, &guess);
     }   
 
-else
-    times = NULL;
-
-while(list != nilCell)
-    {
-    ++N;
-    list = list->next;
-    }
-
-amountsVec = (double *)allocMemory(N * sizeof(double));
-timesVec = (int *)allocMemory(N * sizeof(int));
-
-for(i = 0; i < N; i++)
-    {
-    if(isNumber(amounts->type))
-        {
-        amountsVec[i] = getDirectFloat(amounts);
-        amounts = amounts->next;
-        }
-    else 
-        {
-        freeMemory(amountsVec);
-        freeMemory(timesVec);
-        return(errorProcExt(ERR_NUMBER_EXPECTED, amounts));
-        }
-
-    if(times == NULL) 
-        timesVec[i] = i + 1;
     else
+        times = NULL;
+
+    while(list != nilCell)
+    {
+        ++N;
+        list = list->next;
+    }
+
+    amountsVec = (double *)allocMemory(N * sizeof(double));
+    timesVec = (int *)allocMemory(N * sizeof(int));
+
+    for(i = 0; i < N; i++)
+    {
+        if(isNumber(amounts->type))
         {
-        times = getIntegerExt(times, (UINT *)&number, FALSE);
-        timesVec[i] = number;
+            amountsVec[i] = getDirectFloat(amounts);
+            amounts = amounts->next;
+        }
+        else 
+        {
+            freeMemory(amountsVec);
+            freeMemory(timesVec);
+            return(errorProcExt(ERR_NUMBER_EXPECTED, amounts));
+        }
+
+        if(times == NULL) 
+            timesVec[i] = i + 1;
+        else
+        {
+            times = getIntegerExt(times, (UINT *)&number, FALSE);
+            timesVec[i] = number;
         }
     }
 
-result = irr(N, timesVec, amountsVec, guess);
-if(result < 0.00001) 
-    result = 0.0;
-else
+    result = irr(N, timesVec, amountsVec, guess);
+    if(result < 0.00001) 
+        result = 0.0;
+    else
     {
-    result = floor((10000 * result + 0.5))/10000;
+        result = floor((10000 * result + 0.5))/10000;
     }
 
-freeMemory(amountsVec);
-freeMemory(timesVec);
+    freeMemory(amountsVec);
+    freeMemory(timesVec);
 
-if(result == IRR_ERROR)
-    return(nilCell);
+    if(result == IRR_ERROR)
+        return(nilCell);
 
-return(stuffFloat(result));
+    return(stuffFloat(result));
 }
 
 /* ----------------------------------- CRC32 ----------------------- */
@@ -2541,19 +2541,19 @@ return(stuffFloat(result));
 #ifdef CRC16
 unsigned short crc16(unsigned char * buff, int len)
 {
-int i;
-unsigned short acc = 0xFFFF;
+    int i;
+    unsigned short acc = 0xFFFF;
 
-for(i = 0; i < len; i++)
+    for(i = 0; i < len; i++)
     {
-    acc ^= buff[i];
-    acc  = (acc >> 8) | (acc << 8);
-    acc ^= (acc & 0xff00) << 4;
-    acc ^= (acc >> 8) >> 4;
-    acc ^= (acc & 0xff00) >> 5;
+        acc ^= buff[i];
+        acc  = (acc >> 8) | (acc << 8);
+        acc ^= (acc & 0xff00) << 4;
+        acc ^= (acc >> 8) >> 4;
+        acc ^= (acc & 0xff00) >> 5;
     }
 
-return(acc);
+    return(acc);
 }
 #endif
 
@@ -2561,13 +2561,13 @@ return(acc);
 
 CELL * p_crc32(CELL * params)
 {
-char * data;
-size_t len;
-unsigned int crc;
+    char * data;
+    size_t len;
+    unsigned int crc;
 
-getStringSize(params, &data, &len, TRUE);
-crc = update_crc(0xffffffffL, (unsigned char *)data, (int)len) ^ 0xffffffffL;
-return(stuffInteger64(crc));
+    getStringSize(params, &data, &len, TRUE);
+    crc = update_crc(0xffffffffL, (unsigned char *)data, (int)len) ^ 0xffffffffL;
+    return(stuffInteger64(crc));
 }
 
 /* Update a running CRC with the bytes buf[0..len-1]--the CRC
@@ -2579,35 +2579,35 @@ return(stuffInteger64(crc));
 unsigned int update_crc(unsigned int crc, unsigned char *buf, int len)
 {
 /* unsigned int crc_table[256]; */
-static unsigned int * crc_table = NULL; 
-unsigned int c;
-int n, k;
+    static unsigned int * crc_table = NULL; 
+    unsigned int c;
+    int n, k;
 
-if(crc_table == NULL)
+    if(crc_table == NULL)
     { 
-    /* make crc table */  
-    crc_table = (unsigned int *)malloc(sizeof(unsigned int) * 256);
-    for (n = 0; n < 256; n++) 
+        /* make crc table */  
+        crc_table = (unsigned int *)malloc(sizeof(unsigned int) * 256);
+        for (n = 0; n < 256; n++) 
         {
-        c = (unsigned int) n;
-        for (k = 0; k < 8; k++) 
+            c = (unsigned int) n;
+            for (k = 0; k < 8; k++) 
             {
-            if (c & 1)
-                c = 0xedb88320L ^ (c >> 1);
-            else
-            c = c >> 1;
+                if (c & 1)
+                    c = 0xedb88320L ^ (c >> 1);
+                else
+                    c = c >> 1;
             }
-        crc_table[n] = c;
+            crc_table[n] = c;
         }
     }
 
-c = crc;   
+    c = crc;   
 
 /* update crc */
-for (n = 0; n < len; n++) 
-    c = crc_table[(c ^ buf[n]) & 0xff] ^ (c >> 8);
+    for (n = 0; n < len; n++) 
+        c = crc_table[(c ^ buf[n]) & 0xff] ^ (c >> 8);
 
-return c;
+    return c;
 }
 
 
@@ -2639,118 +2639,118 @@ return c;
 
 CELL * p_bayesTrain(CELL * params)
 {
-CELL * * category;
-CELL * list;
-CELL * count;
-int * total;
-int i, idx, maxIdx = 0;
-SYMBOL * ctx;
-SYMBOL * sPtr;
-SYMBOL * totalPtr;
-char * token;
+    CELL * * category;
+    CELL * list;
+    CELL * count;
+    int * total;
+    int i, idx, maxIdx = 0;
+    SYMBOL * ctx;
+    SYMBOL * sPtr;
+    SYMBOL * totalPtr;
+    char * token;
 
-list = params;
-while(list != nilCell) list = list->next, maxIdx++;
---maxIdx; /* last is a context not a category */
-if(maxIdx < 1) errorProc(ERR_MISSING_ARGUMENT);
+    list = params;
+    while(list != nilCell) list = list->next, maxIdx++;
+    --maxIdx; /* last is a context not a category */
+    if(maxIdx < 1) errorProc(ERR_MISSING_ARGUMENT);
 
-category = alloca(maxIdx * sizeof(CELL *));
-total = alloca(maxIdx * sizeof(int));
-token = alloca(MAX_SYMBOL + 1);
+    category = alloca(maxIdx * sizeof(CELL *));
+    total = alloca(maxIdx * sizeof(int));
+    token = alloca(MAX_SYMBOL + 1);
 
-for(idx = 0; idx < maxIdx; idx++)
-  {
-  params = getListHead(params, &list);
-  category[idx] = list;
-  }
-  
-if((ctx = getCreateContext(params, TRUE)) == NULL)
-  return(errorProcExt(ERR_SYMBOL_OR_CONTEXT_EXPECTED, params));
-            
-for(idx = 0; idx < maxIdx; idx++)
-  {
-  list = category[idx];
-  total[idx] = 0;
-  while(list != nilCell)    
+    for(idx = 0; idx < maxIdx; idx++)
     {
-
-    switch(list->type)
-      {
-      case CELL_STRING:
-        if(list->aux > MAX_SYMBOL + 1) continue;
-        *token = '_';
-        memcpy(token + 1, (char *)list->contents, list->aux);
-        break;
-      case CELL_SYMBOL:
-        strncpy(token, ((SYMBOL *)list->contents)->name, MAX_SYMBOL + 1);
-        break;
-      }
-    
-    sPtr = translateCreateSymbol(token, CELL_EXPRESSION, ctx, TRUE);
-    if(((CELL*)sPtr->contents)->type == CELL_NIL)
-      {
-      /* create list with maxIdx 0s */
-      count = getCell(CELL_EXPRESSION);
-      sPtr->contents = (UINT)count;
-      count->contents = (UINT)stuffInteger(0);
-      count = (CELL *)count->contents;
-      for(i = 1; i < maxIdx; i++)
-        {
-        count->next = stuffInteger(0);
-        count = count->next;
-        }
-      }
-
-    /* increment value at idx */
-    count = (CELL *)sPtr->contents;
-    if(count->type != CELL_EXPRESSION)
-      return(errorProcExt(ERR_LIST_EXPECTED, count));
-    count = (CELL *)count->contents;
-    for(i = 0; i < idx; i++) 
-      count = count->next;
-    if(count->type == CELL_LONG)    
-      count->contents++;  
-#ifndef NEWLISP64
-    else if(count->type == CELL_INT64)
-      *(INT64 *)&count->aux += 1;
-#endif
-    else
-      return(errorProcExt(ERR_NUMBER_EXPECTED, count));
-    total[idx]++;
-    list = list->next;
-    } /* done category idx */
-  }
-
-totalPtr = translateCreateSymbol("total", CELL_EXPRESSION, ctx, TRUE);
-if(((CELL *)totalPtr->contents)->type == CELL_NIL)
-  {
-  count = getCell(CELL_EXPRESSION);
-  totalPtr->contents = (UINT)count;
-  count->contents = (UINT)stuffInteger(0);
-  count = (CELL *)count->contents;
-  for(i = 1; i < maxIdx; i++)
-    {
-    count->next = stuffInteger(0);
-    count = count->next;
+        params = getListHead(params, &list);
+        category[idx] = list;
     }
-  }
+  
+    if((ctx = getCreateContext(params, TRUE)) == NULL)
+        return(errorProcExt(ERR_SYMBOL_OR_CONTEXT_EXPECTED, params));
+            
+    for(idx = 0; idx < maxIdx; idx++)
+    {
+        list = category[idx];
+        total[idx] = 0;
+        while(list != nilCell)    
+        {
 
-count = (CELL *)totalPtr->contents;
-if(count->type != CELL_EXPRESSION)
-    return(errorProcExt(ERR_LIST_EXPECTED, count));
-count = (CELL *)count->contents;
-for(i = 0; i < maxIdx; i++)
-  {
-  if(count->type == CELL_LONG)
-    count->contents += total[i];
+            switch(list->type)
+            {
+                case CELL_STRING:
+                    if(list->aux > MAX_SYMBOL + 1) continue;
+                    *token = '_';
+                    memcpy(token + 1, (char *)list->contents, list->aux);
+                    break;
+                case CELL_SYMBOL:
+                    strncpy(token, ((SYMBOL *)list->contents)->name, MAX_SYMBOL + 1);
+                    break;
+            }
+    
+            sPtr = translateCreateSymbol(token, CELL_EXPRESSION, ctx, TRUE);
+            if(((CELL*)sPtr->contents)->type == CELL_NIL)
+            {
+                /* create list with maxIdx 0s */
+                count = getCell(CELL_EXPRESSION);
+                sPtr->contents = (UINT)count;
+                count->contents = (UINT)stuffInteger(0);
+                count = (CELL *)count->contents;
+                for(i = 1; i < maxIdx; i++)
+                {
+                    count->next = stuffInteger(0);
+                    count = count->next;
+                }
+            }
+
+            /* increment value at idx */
+            count = (CELL *)sPtr->contents;
+            if(count->type != CELL_EXPRESSION)
+                return(errorProcExt(ERR_LIST_EXPECTED, count));
+            count = (CELL *)count->contents;
+            for(i = 0; i < idx; i++) 
+                count = count->next;
+            if(count->type == CELL_LONG)    
+                count->contents++;  
 #ifndef NEWLISP64
-  else if(count->type == CELL_INT64)
-    *(INT64 *)&count->aux += total[i];
+            else if(count->type == CELL_INT64)
+                *(INT64 *)&count->aux += 1;
 #endif
-  count = count->next;
-  }    
+            else
+                return(errorProcExt(ERR_NUMBER_EXPECTED, count));
+            total[idx]++;
+            list = list->next;
+        } /* done category idx */
+    }
 
-return(copyCell((CELL *)totalPtr->contents));
+    totalPtr = translateCreateSymbol("total", CELL_EXPRESSION, ctx, TRUE);
+    if(((CELL *)totalPtr->contents)->type == CELL_NIL)
+    {
+        count = getCell(CELL_EXPRESSION);
+        totalPtr->contents = (UINT)count;
+        count->contents = (UINT)stuffInteger(0);
+        count = (CELL *)count->contents;
+        for(i = 1; i < maxIdx; i++)
+        {
+            count->next = stuffInteger(0);
+            count = count->next;
+        }
+    }
+
+    count = (CELL *)totalPtr->contents;
+    if(count->type != CELL_EXPRESSION)
+        return(errorProcExt(ERR_LIST_EXPECTED, count));
+    count = (CELL *)count->contents;
+    for(i = 0; i < maxIdx; i++)
+    {
+        if(count->type == CELL_LONG)
+            count->contents += total[i];
+#ifndef NEWLISP64
+        else if(count->type == CELL_INT64)
+            *(INT64 *)&count->aux += total[i];
+#endif
+        count = count->next;
+    }    
+
+    return(copyCell((CELL *)totalPtr->contents));
 }
 
 /* 
@@ -2768,18 +2768,18 @@ return(copyCell((CELL *)totalPtr->contents));
 
    for 2 categories:
    
-                     p(tkn|A) * p(A)
+   p(tkn|A) * p(A)
    p(A|tkn) = ---------------------------------
-              p(tkn|A) * p(A) + p(tkn|B) * p(B)
+   p(tkn|A) * p(A) + p(tkn|B) * p(B)
               
    p(A|tkn) is the posterior for A which gets prior p(A) for the next token the 
    priors: p(A) and p(B) = 1 are substituted after every token. p(A) = p(not B).
 
    for N categories:
    
-                    p(tkn|Mc) * p(Mc)
+   p(tkn|Mc) * p(Mc)
    p(Mc|tkn) = -------------------------------    ; Mc is one of N categories
-                sum-i-N( p(tkn|Mi) * p(Mi) ) 
+   sum-i-N( p(tkn|Mi) * p(Mi) ) 
               
    
    When in chain Bayes mode p(Mc|tkn) is the posterior for Mc and replaces the 
@@ -2797,231 +2797,231 @@ return(copyCell((CELL *)totalPtr->contents));
 
 CELL * p_bayesQuery(CELL * params)
 {
-CELL * tokens;
-CELL * tkn;
-char * token;
-SYMBOL * ctx;
-SYMBOL * sPtr;
-SYMBOL * totPtr;
-CELL * count;
-CELL * total;
-int i, idx; 
-int nTkn = 0;   /* number of token in query */
-int maxIdx = 0; /* number of catagories */
-int N = 0;      /* total of tokens in all categories */
-int chainBayes, probFlag;
-double * priorP;
-double * postP;
-double * p_tkn_and_cat;
-double p_tkn_and_all_cat;
-double * Pchi2 = NULL;
-double * Qchi2 = NULL;
-INT countNum, totalNum;
+    CELL * tokens;
+    CELL * tkn;
+    char * token;
+    SYMBOL * ctx;
+    SYMBOL * sPtr;
+    SYMBOL * totPtr;
+    CELL * count;
+    CELL * total;
+    int i, idx; 
+    int nTkn = 0;   /* number of token in query */
+    int maxIdx = 0; /* number of catagories */
+    int N = 0;      /* total of tokens in all categories */
+    int chainBayes, probFlag;
+    double * priorP;
+    double * postP;
+    double * p_tkn_and_cat;
+    double p_tkn_and_all_cat;
+    double * Pchi2 = NULL;
+    double * Qchi2 = NULL;
+    INT countNum, totalNum;
 
-CELL * result = NULL;
-CELL * cell = NULL;
+    CELL * result = NULL;
+    CELL * cell = NULL;
 
-params = getListHead(params, &tokens);
-params = getContext(params, &ctx);
+    params = getListHead(params, &tokens);
+    params = getContext(params, &ctx);
 
-chainBayes = getFlag(params);
-probFlag = getFlag(params->next);
+    chainBayes = getFlag(params);
+    probFlag = getFlag(params->next);
 
-totPtr = translateCreateSymbol("total", CELL_EXPRESSION, ctx, FALSE);
-if(totPtr == NULL)  return(nilCell);
+    totPtr = translateCreateSymbol("total", CELL_EXPRESSION, ctx, FALSE);
+    if(totPtr == NULL)  return(nilCell);
 
-total = (CELL *)totPtr->contents;
-if(total->type != CELL_EXPRESSION)
-    return(errorProcExt(ERR_LIST_EXPECTED, (CELL *)totPtr->contents));
+    total = (CELL *)totPtr->contents;
+    if(total->type != CELL_EXPRESSION)
+        return(errorProcExt(ERR_LIST_EXPECTED, (CELL *)totPtr->contents));
 
 /* 
    Get number of categories maxIdx and total N in all categories.
    If no probabilities are specified get frequencies/counts  
 */
-total = (CELL *)total->contents;
-while(total != nilCell)
+    total = (CELL *)total->contents;
+    while(total != nilCell)
     {
-    if(probFlag == FALSE)
+        if(probFlag == FALSE)
         {
-        if(total->type == CELL_LONG)
-            N += total->contents;
+            if(total->type == CELL_LONG)
+                N += total->contents;
 #ifndef NEWLISP64
-        else if(total->type == CELL_INT64)
-            N += *(INT64 *)&total->aux;
+            else if(total->type == CELL_INT64)
+                N += *(INT64 *)&total->aux;
 #endif
         }
-    total = total->next;
-    maxIdx++;
+        total = total->next;
+        maxIdx++;
     }
 
 /* allocate memory for priors and posts for each category */ 
-priorP = alloca(maxIdx * sizeof(double));
-postP = alloca(maxIdx * sizeof(double));
-p_tkn_and_cat = alloca(maxIdx * sizeof(double));
+    priorP = alloca(maxIdx * sizeof(double));
+    postP = alloca(maxIdx * sizeof(double));
+    p_tkn_and_cat = alloca(maxIdx * sizeof(double));
 
 /* allocate memory fo Chi-2 probs for each category */
-if(!chainBayes)
+    if(!chainBayes)
     {
-    Pchi2 = alloca(maxIdx * sizeof(double));
-    Qchi2 = alloca(maxIdx * sizeof(double));
+        Pchi2 = alloca(maxIdx * sizeof(double));
+        Qchi2 = alloca(maxIdx * sizeof(double));
     }
 
 /* calculate the prior prob for each category */
-total = (CELL *)((CELL *)totPtr->contents)->contents;
-for(idx = 0; idx < maxIdx; idx++) 
+    total = (CELL *)((CELL *)totPtr->contents)->contents;
+    for(idx = 0; idx < maxIdx; idx++) 
     {
-    if(probFlag == TRUE)
+        if(probFlag == TRUE)
 #ifndef NEWLISP64
-        priorP[idx] = *(double *)&total->aux; 
+            priorP[idx] = *(double *)&total->aux; 
 #else
         priorP[idx] = (double)total->contents;
 #endif
-    else
+        else
         {
-        if(total->type == CELL_LONG)
-            priorP[idx] = (double)total->contents / N;
+            if(total->type == CELL_LONG)
+                priorP[idx] = (double)total->contents / N;
 #ifndef NEWLISP64
-        else /* INT64 */
-            priorP[idx] = (double)*(INT64 *)&total->aux / N;
+            else /* INT64 */
+                priorP[idx] = (double)*(INT64 *)&total->aux / N;
 #endif
         }
 
 #ifdef BAYES_DEBUG
-    printf("priorP[%d]=%f probability of category %d\n", idx, priorP[idx], idx);  
+        printf("priorP[%d]=%f probability of category %d\n", idx, priorP[idx], idx);  
 #endif                                    
 
-    total = total->next;
-    /* initialize Fisher's Chi-2 probs and priors */
-    if(!chainBayes) 
+        total = total->next;
+        /* initialize Fisher's Chi-2 probs and priors */
+        if(!chainBayes) 
         {
-        Pchi2[idx] = Qchi2[idx] = 0.0;
-        priorP[idx] = 1.0 / maxIdx;
+            Pchi2[idx] = Qchi2[idx] = 0.0;
+            priorP[idx] = 1.0 / maxIdx;
         }
     }
 
-token = alloca(MAX_SYMBOL + 1);
-tkn = tokens;
-while(tkn != nilCell) tkn = tkn->next, nTkn++;
+    token = alloca(MAX_SYMBOL + 1);
+    tkn = tokens;
+    while(tkn != nilCell) tkn = tkn->next, nTkn++;
 
 /* for each token  calculate p(tkn|M) in each category M */
-tkn = tokens;
-for(i = 0; i < nTkn; i++)
+    tkn = tokens;
+    for(i = 0; i < nTkn; i++)
     {
-    switch(tkn->type)
-      {
-      case CELL_STRING:
-        if(tkn->aux > MAX_SYMBOL + 1) continue;
-        *token = '_';
-        memcpy(token + 1, (char *)tkn->contents, tkn->aux);
-        break;
-      case CELL_SYMBOL:
-        strncpy(token, ((SYMBOL *)tkn->contents)->name, MAX_SYMBOL + 1);
-        break;
-      }
-
-    if((sPtr = lookupSymbol((char *)token, ctx)) == NULL) 
+        switch(tkn->type)
         {
-        /* skip the token if it doesn't occur in data */
-        tkn = tkn->next;
-        continue;
+            case CELL_STRING:
+                if(tkn->aux > MAX_SYMBOL + 1) continue;
+                *token = '_';
+                memcpy(token + 1, (char *)tkn->contents, tkn->aux);
+                break;
+            case CELL_SYMBOL:
+                strncpy(token, ((SYMBOL *)tkn->contents)->name, MAX_SYMBOL + 1);
+                break;
         }
 
-    count = (CELL *)sPtr->contents;
-    if(count->type != CELL_EXPRESSION) continue;
-  
-    count = (CELL *)(CELL *)count->contents;
-    total = (CELL *)((CELL *)totPtr->contents)->contents;
-     
-    /* in each category M[idx] */ 
-    p_tkn_and_all_cat = 0.0;
-    for(idx = 0; idx < maxIdx; idx++)
+        if((sPtr = lookupSymbol((char *)token, ctx)) == NULL) 
         {
-        if(probFlag)
+            /* skip the token if it doesn't occur in data */
+            tkn = tkn->next;
+            continue;
+        }
+
+        count = (CELL *)sPtr->contents;
+        if(count->type != CELL_EXPRESSION) continue;
+  
+        count = (CELL *)(CELL *)count->contents;
+        total = (CELL *)((CELL *)totPtr->contents)->contents;
+     
+        /* in each category M[idx] */ 
+        p_tkn_and_all_cat = 0.0;
+        for(idx = 0; idx < maxIdx; idx++)
+        {
+            if(probFlag)
 #ifndef NEWLISP64
-            p_tkn_and_cat[idx] = *(double *)&count->aux * priorP[idx];
+                p_tkn_and_cat[idx] = *(double *)&count->aux * priorP[idx];
 #else
             p_tkn_and_cat[idx] = *(double *)&count->contents * priorP[idx];
 #endif  
-        else /*   p(M) * p(tkn|M) */         
+            else /*   p(M) * p(tkn|M) */         
             {
-            /* count of token in category idx */
-            getInteger(count, (UINT *)&countNum); 
-            /* total of all tokens in category idx */
-            getInteger(total, (UINT *)&totalNum); 
-            p_tkn_and_cat[idx] = priorP[idx] * countNum / totalNum;
+                /* count of token in category idx */
+                getInteger(count, (UINT *)&countNum); 
+                /* total of all tokens in category idx */
+                getInteger(total, (UINT *)&totalNum); 
+                p_tkn_and_cat[idx] = priorP[idx] * countNum / totalNum;
             }
         
-        /* accumulate probability of token in all cataegories */
-        p_tkn_and_all_cat += p_tkn_and_cat[idx];
+            /* accumulate probability of token in all cataegories */
+            p_tkn_and_all_cat += p_tkn_and_cat[idx];
 
 #ifdef BAYES_DEBUG
-        printf("token[%d] p(M[%d]) * p(tkn|M[%d])=%lf * %ld / %ld = %lf\n", i, idx, idx, 
-            priorP[idx], countNum, totalNum, (double)p_tkn_and_cat[idx]);
+            printf("token[%d] p(M[%d]) * p(tkn|M[%d])=%lf * %ld / %ld = %lf\n", i, idx, idx, 
+                   priorP[idx], countNum, totalNum, (double)p_tkn_and_cat[idx]);
 #endif
-        count = count->next;
-        total = total->next;
+            count = count->next;
+            total = total->next;
         }  
         
-    for(idx = 0; idx < maxIdx; idx++)
+        for(idx = 0; idx < maxIdx; idx++)
         {
-        if(!chainBayes)
+            if(!chainBayes)
             {
-            postP[idx] = p_tkn_and_cat[idx] / p_tkn_and_all_cat;
+                postP[idx] = p_tkn_and_cat[idx] / p_tkn_and_all_cat;
             
-            /* handle probability limits of 0 and using very small value */
-            if(postP[idx] == 0.0)
-                Qchi2[idx] += log(3e-308) * -2.0;
-            else
-                Qchi2[idx] += log(postP[idx]) * -2.0;
+                /* handle probability limits of 0 and using very small value */
+                if(postP[idx] == 0.0)
+                    Qchi2[idx] += log(3e-308) * -2.0;
+                else
+                    Qchi2[idx] += log(postP[idx]) * -2.0;
                        
-            if(postP[idx] == 1.0) 
-                Pchi2[idx] += log(3e-308) * -2.0; 
-            else 
-                Pchi2[idx] += log(1.0 - postP[idx]) * -2.0;
+                if(postP[idx] == 1.0) 
+                    Pchi2[idx] += log(3e-308) * -2.0; 
+                else 
+                    Pchi2[idx] += log(1.0 - postP[idx]) * -2.0;
             } 
-        else 
+            else 
             {
-            postP[idx] = p_tkn_and_cat[idx] / p_tkn_and_all_cat; 
-            priorP[idx] = postP[idx]; 
+                postP[idx] = p_tkn_and_cat[idx] / p_tkn_and_all_cat; 
+                priorP[idx] = postP[idx]; 
             }
 #ifdef BAYES_DEBUG
-        printf("postP[%d] = p_tkn_and_cat[%d] / p_tkn_and_all_cat = %lf / %lf = %lf\n", 
-          idx, idx, p_tkn_and_cat[idx], p_tkn_and_all_cat, postP[idx]);
+            printf("postP[%d] = p_tkn_and_cat[%d] / p_tkn_and_all_cat = %lf / %lf = %lf\n", 
+                   idx, idx, p_tkn_and_cat[idx], p_tkn_and_all_cat, postP[idx]);
 #endif
         }
         
-    tkn = tkn->next;
+        tkn = tkn->next;
     }
     
-if(!chainBayes)
+    if(!chainBayes)
     {
-    for(idx = 0; idx < maxIdx; idx++)
-      {
+        for(idx = 0; idx < maxIdx; idx++)
+        {
 #ifdef BAYES_DEBUG
-        printf("Qchi2[%d] = %f, Pchi2[%d] = %f, nTkn = %d\n", idx, Qchi2[idx], idx, Pchi2[idx], nTkn);
+            printf("Qchi2[%d] = %f, Pchi2[%d] = %f, nTkn = %d\n", idx, Qchi2[idx], idx, Pchi2[idx], nTkn);
 #endif
-      /* corrected swapped Pchi2[idx] and Qchi2[idx] in 10.5.5 */
-      postP[idx] = (probChi2(Pchi2[idx],  2 * nTkn) - probChi2(Qchi2[idx],  2 * nTkn)  + 1.0) / 2.0;
-      }
+            /* corrected swapped Pchi2[idx] and Qchi2[idx] in 10.5.5 */
+            postP[idx] = (probChi2(Pchi2[idx],  2 * nTkn) - probChi2(Qchi2[idx],  2 * nTkn)  + 1.0) / 2.0;
+        }
     }
                                                 
     
-for(idx = 0; idx < maxIdx; idx++)
+    for(idx = 0; idx < maxIdx; idx++)
     {
-    if(idx == 0)
+        if(idx == 0)
         {
-        result = getCell(CELL_EXPRESSION);
-        result->contents = (UINT)stuffFloat(*(postP + idx));
-        cell = (CELL *)result->contents;
+            result = getCell(CELL_EXPRESSION);
+            result->contents = (UINT)stuffFloat(*(postP + idx));
+            cell = (CELL *)result->contents;
         }
-    else
+        else
         {
-        cell->next = stuffFloat(*(postP + idx));
-        cell = cell->next;
+            cell->next = stuffFloat(*(postP + idx));
+            cell = cell->next;
         }
     }
 
-return(result);
+    return(result);
 }
 
 /*
@@ -3044,7 +3044,7 @@ return(result);
 */
 
 /*
- 'unify' for Prolog like unification of s-expressions:
+  'unify' for Prolog like unification of s-expressions:
   (unify '(f (g A) A) '(f B xyz)) => binds A to xyz and B to (g xyz)
 
   variable symbols must start with an upper-case letter, variables
@@ -3059,11 +3059,11 @@ return(result);
 #endif
 
 typedef struct
-    {
+{
     CELL * left;
     CELL * right;
     void * next;
-    } TERMSET;
+} TERMSET;
 
 void pushSet(TERMSET * * root, CELL * left, CELL * right);
 CELL * unify(CELL * left, CELL * right);
@@ -3086,33 +3086,33 @@ int debugFlag;
 
 CELL * p_unify(CELL * params)
 {
-CELL * left, * right;
-CELL * envHead;
-left = evaluateExpression(params);
-params = params->next;
-right = evaluateExpression(params);
+    CELL * left, * right;
+    CELL * envHead;
+    left = evaluateExpression(params);
+    params = params->next;
+    right = evaluateExpression(params);
 
-if((params = params->next) != nilCell)
+    if((params = params->next) != nilCell)
     {
-    params = getListHead(params, &envHead);
-    while(envHead != nilCell)
+        params = getListHead(params, &envHead);
+        while(envHead != nilCell)
         {
-        if(envHead->type != CELL_EXPRESSION)
-            return(errorProcExt(ERR_LIST_EXPECTED, envHead));
-        pushSet(&ws, copyCell((CELL*)envHead->contents),
+            if(envHead->type != CELL_EXPRESSION)
+                return(errorProcExt(ERR_LIST_EXPECTED, envHead));
+            pushSet(&ws, copyCell((CELL*)envHead->contents),
                     copyCell(((CELL*)envHead->contents)->next));
-        envHead = envHead->next;
+            envHead = envHead->next;
         }
     }
 
-bindFlag =  getFlag(params);
+    bindFlag =  getFlag(params);
 
 #ifdef DEBUG
-debugFlag =  getFlag(params->next);
-if(debugFlag) printStack(ws);
+    debugFlag =  getFlag(params->next);
+    if(debugFlag) printStack(ws);
 #endif
 
-return(unify(left, right));
+    return(unify(left, right));
 }
 
 #define UNIFY_ATOM 0
@@ -3122,366 +3122,366 @@ return(unify(left, right));
 
 void pushSet(TERMSET * * root, CELL * left, CELL * right)
 {
-TERMSET * set;
+    TERMSET * set;
 
-set = (TERMSET *)callocMemory(sizeof(TERMSET));
+    set = (TERMSET *)callocMemory(sizeof(TERMSET));
 
-set->left = left;
-set->right = right;
-set->next = *root;
-*root = set;
+    set->left = left;
+    set->right = right;
+    set->next = *root;
+    *root = set;
 }
 
 void  popSet(TERMSET * * root, CELL * * left, CELL * * right)
 {
-TERMSET * set;
+    TERMSET * set;
 
-set = *root;
-*root = set->next;
+    set = *root;
+    *root = set->next;
 
-*left = set->left;
-*right = set->right;
+    *left = set->left;
+    *right = set->right;
 
-freeMemory(set);
+    freeMemory(set);
 }
 
 
 CELL * unify(CELL * left, CELL * right)
 {
-int leftType, rightType;
-CELL * lCell, * rCell;
+    int leftType, rightType;
+    CELL * lCell, * rCell;
 
-pushSet(&ws, copyCell(left), copyCell(right));
+    pushSet(&ws, copyCell(left), copyCell(right));
 
-while(ws != NULL)
+    while(ws != NULL)
     {
-    popSet(&ws, &left, &right);
-
-#ifdef DEBUG
-    if(debugFlag)
-        {
-        printf("unify:");
-        printCell(left, FALSE, OUT_CONSOLE);
-        printf(" ");
-        printCell(right, FALSE, OUT_CONSOLE);
-        printf("\n");
-        }
-#endif
-
-    leftType = unifyGetType(left);
-    rightType = unifyGetType(right);
-
-    if(leftType == UNIFY_ANY || rightType == UNIFY_ANY)
-        {
-        deleteList(left);
-        deleteList(right);
-        continue;
-        }
-
-    if( (leftType == UNIFY_ATOM && rightType == UNIFY_ATOM) ||
-        (left->contents == right->contents))
-        {
-        if(compareCells(left, right) == 0)
-            {
-            deleteList(left);
-            deleteList(right);
-            continue;
-            }
-        else
-            {
-            deleteList(left);
-            deleteList(right);
-            return(finishUnify(nilCell));
-            }
-        }
-
-    if(leftType == UNIFY_VAR && !occurCheck(left, right))
-        {
-        substitute(right, left, mgu); /* expand(right-expr, left-sym) in mgu set */
-        substitute(right, left, ws);  /* expand(right-expr, left-sym) in ws set */
+        popSet(&ws, &left, &right);
 
 #ifdef DEBUG
         if(debugFlag)
-            {
-            printf("ws stack\n");
-            printStack(ws);
-            }
-#endif
-        pushSet(&mgu, left, right);
-#ifdef DEBUG
-        if(debugFlag)
-            {
-            printf("mgu stack\n");
-            printStack(mgu);
-            }
-#endif
-        continue;
-        }
-
-    if(rightType == UNIFY_VAR && !occurCheck(right, left))
         {
-        substitute(left, right, mgu); /* expand(left-expr, right-sym) in mgu set */
-        substitute(left, right, ws); /* expand(left-expr, right-sym) in ws set */
-#ifdef DEBUG
-        if(debugFlag)
-            {
-            printf("ws stack\n");
-            printStack(ws);
-            }
-#endif
-        pushSet(&mgu, right, left);
-#ifdef DEBUG
-        if(debugFlag)
-            {
-            printf("mgu stack\n");
-            printStack(mgu);
-            }
-#endif
-        continue;
-        }
-
-    if(leftType == UNIFY_LIST && rightType == UNIFY_LIST)
-        {
-#ifdef DEBUG
-        if(debugFlag)
-            {
-            printf("lists:");
+            printf("unify:");
             printCell(left, FALSE, OUT_CONSOLE);
             printf(" ");
             printCell(right, FALSE, OUT_CONSOLE);
             printf("\n");
-            }
+        }
 #endif
-        if(listlen((CELL*)left->contents) != listlen((CELL*)right->contents))
-            {
+
+        leftType = unifyGetType(left);
+        rightType = unifyGetType(right);
+
+        if(leftType == UNIFY_ANY || rightType == UNIFY_ANY)
+        {
             deleteList(left);
             deleteList(right);
-            return(finishUnify(nilCell));
-            }
-        
-        lCell = (CELL*)left->contents;
-        rCell = (CELL*)right->contents;
-        while(lCell != nilCell)
-            {
-            pushSet(&ws, copyCell(lCell), copyCell(rCell));
-            lCell = lCell->next;
-            rCell = rCell->next;
-            }
-        deleteList(left);
-        deleteList(right);
-        continue;
+            continue;
         }
 
-    deleteList(left);
-    deleteList(right);
-    return(finishUnify(nilCell));
+        if( (leftType == UNIFY_ATOM && rightType == UNIFY_ATOM) ||
+            (left->contents == right->contents))
+        {
+            if(compareCells(left, right) == 0)
+            {
+                deleteList(left);
+                deleteList(right);
+                continue;
+            }
+            else
+            {
+                deleteList(left);
+                deleteList(right);
+                return(finishUnify(nilCell));
+            }
+        }
+
+        if(leftType == UNIFY_VAR && !occurCheck(left, right))
+        {
+            substitute(right, left, mgu); /* expand(right-expr, left-sym) in mgu set */
+            substitute(right, left, ws);  /* expand(right-expr, left-sym) in ws set */
+
+#ifdef DEBUG
+            if(debugFlag)
+            {
+                printf("ws stack\n");
+                printStack(ws);
+            }
+#endif
+            pushSet(&mgu, left, right);
+#ifdef DEBUG
+            if(debugFlag)
+            {
+                printf("mgu stack\n");
+                printStack(mgu);
+            }
+#endif
+            continue;
+        }
+
+        if(rightType == UNIFY_VAR && !occurCheck(right, left))
+        {
+            substitute(left, right, mgu); /* expand(left-expr, right-sym) in mgu set */
+            substitute(left, right, ws); /* expand(left-expr, right-sym) in ws set */
+#ifdef DEBUG
+            if(debugFlag)
+            {
+                printf("ws stack\n");
+                printStack(ws);
+            }
+#endif
+            pushSet(&mgu, right, left);
+#ifdef DEBUG
+            if(debugFlag)
+            {
+                printf("mgu stack\n");
+                printStack(mgu);
+            }
+#endif
+            continue;
+        }
+
+        if(leftType == UNIFY_LIST && rightType == UNIFY_LIST)
+        {
+#ifdef DEBUG
+            if(debugFlag)
+            {
+                printf("lists:");
+                printCell(left, FALSE, OUT_CONSOLE);
+                printf(" ");
+                printCell(right, FALSE, OUT_CONSOLE);
+                printf("\n");
+            }
+#endif
+            if(listlen((CELL*)left->contents) != listlen((CELL*)right->contents))
+            {
+                deleteList(left);
+                deleteList(right);
+                return(finishUnify(nilCell));
+            }
+        
+            lCell = (CELL*)left->contents;
+            rCell = (CELL*)right->contents;
+            while(lCell != nilCell)
+            {
+                pushSet(&ws, copyCell(lCell), copyCell(rCell));
+                lCell = lCell->next;
+                rCell = rCell->next;
+            }
+            deleteList(left);
+            deleteList(right);
+            continue;
+        }
+
+        deleteList(left);
+        deleteList(right);
+        return(finishUnify(nilCell));
     }
 
-return(finishUnify(trueCell));
+    return(finishUnify(trueCell));
 }
 
 int unifyGetType(CELL * cell)
 {
-SYMBOL * sPtr;
-int wchar;
+    SYMBOL * sPtr;
+    int wchar;
 
-if(isSymbol(cell->type))
+    if(isSymbol(cell->type))
     {
-    if(cell->type == CELL_SYMBOL)
-        sPtr = (SYMBOL *)cell->contents;
-    else
-        sPtr = getDynamicSymbol(cell);
+        if(cell->type == CELL_SYMBOL)
+            sPtr = (SYMBOL *)cell->contents;
+        else
+            sPtr = getDynamicSymbol(cell);
 
-    if(*sPtr->name == '_' && *(sPtr->name + 1) == 0)
-        return(UNIFY_ANY);
+        if(*sPtr->name == '_' && *(sPtr->name + 1) == 0)
+            return(UNIFY_ANY);
     
 #ifndef SUPPORT_UTF8
-    wchar = *sPtr->name;
+        wchar = *sPtr->name;
 #else
-    utf8_wchar(sPtr->name, &wchar);
+        utf8_wchar(sPtr->name, &wchar);
 #endif
-    return((wchar > 64 && wchar < 91) ? UNIFY_VAR : UNIFY_ATOM);
+        return((wchar > 64 && wchar < 91) ? UNIFY_VAR : UNIFY_ATOM);
     }
-else if(isList(cell->type))
-    return(UNIFY_LIST);
+    else if(isList(cell->type))
+        return(UNIFY_LIST);
 
-return(UNIFY_ATOM);
+    return(UNIFY_ATOM);
 }
 
 
 int occurCheck(CELL * symCell, CELL * expr)
 {
-CELL * cell;
+    CELL * cell;
 
-if(!isEnvelope(expr->type))
-    return(symCell->contents == expr->contents);
+    if(!isEnvelope(expr->type))
+        return(symCell->contents == expr->contents);
 
-cell = (CELL*)expr->contents;
+    cell = (CELL*)expr->contents;
 
-while(cell != nilCell)
+    while(cell != nilCell)
     {
-    if(symCell->contents == cell->contents) return(1);
-    if(isEnvelope(cell->type) && occurCheck(symCell, cell)) return(1);
-    cell = cell->next;
+        if(symCell->contents == cell->contents) return(1);
+        if(isEnvelope(cell->type) && occurCheck(symCell, cell)) return(1);
+        cell = cell->next;
     }
 
-return(0);
+    return(0);
 }
 
 void substitute(CELL * expr, CELL * sym, TERMSET * tset)
 {
-if(tset == NULL) 
+    if(tset == NULL) 
     {
 #ifdef DEBUG
-    if(debugFlag)
+        if(debugFlag)
         {
-        printf("empty set in substitute %s for ", ((SYMBOL*)sym->contents)->name);
-        printCell(expr, FALSE, OUT_CONSOLE);
-        printf("\n");
+            printf("empty set in substitute %s for ", ((SYMBOL*)sym->contents)->name);
+            printCell(expr, FALSE, OUT_CONSOLE);
+            printf("\n");
         }
 #endif
-    return;
+        return;
     }
 
-while(tset != NULL)
+    while(tset != NULL)
     {
 #ifdef DEBUG
-    if(debugFlag)
+        if(debugFlag)
         {
-        printf("substitute %s for ", ((SYMBOL*)sym->contents)->name);
-        printCell(expr, FALSE, OUT_CONSOLE);
-        printf("\n");
-        printf("left:");
-        printCell(tset->left, FALSE, OUT_CONSOLE);
+            printf("substitute %s for ", ((SYMBOL*)sym->contents)->name);
+            printCell(expr, FALSE, OUT_CONSOLE);
+            printf("\n");
+            printf("left:");
+            printCell(tset->left, FALSE, OUT_CONSOLE);
         }
 #endif
-    tset->left = subsym(expr, sym, tset->left);
+        tset->left = subsym(expr, sym, tset->left);
 #ifdef DEBUG
-    if(debugFlag)
+        if(debugFlag)
         {
-        printf("->");
-        printCell(tset->left, FALSE, OUT_CONSOLE);
-        printf(" right:");
-        printCell(tset->right, FALSE, OUT_CONSOLE);
+            printf("->");
+            printCell(tset->left, FALSE, OUT_CONSOLE);
+            printf(" right:");
+            printCell(tset->right, FALSE, OUT_CONSOLE);
         }
 #endif
-    tset->right = subsym(expr, sym, tset->right);
+        tset->right = subsym(expr, sym, tset->right);
 #ifdef DEBUG
-    if(debugFlag)
+        if(debugFlag)
         {
-        printf("->");
-        printCell(tset->right, FALSE, OUT_CONSOLE);
-        printf("\n");
+            printf("->");
+            printCell(tset->right, FALSE, OUT_CONSOLE);
+            printf("\n");
         }
 #endif
-    tset = tset->next;
+        tset = tset->next;
     }
 }
 
 
 CELL * subsym(CELL * expr, CELL * sym, CELL * cell)
 {
-SYMBOL * sPtr;
-CELL * sCell;
+    SYMBOL * sPtr;
+    CELL * sCell;
 
-sPtr = (SYMBOL *)sym->contents;
-sCell = (CELL *)sPtr->contents;
-sPtr->contents = (UINT)expr;
+    sPtr = (SYMBOL *)sym->contents;
+    sCell = (CELL *)sPtr->contents;
+    sPtr->contents = (UINT)expr;
 
-if(isList(cell->type) || cell->type == CELL_QUOTE)
+    if(isList(cell->type) || cell->type == CELL_QUOTE)
     {
-    expr =  expand(copyCell(cell), sPtr);
-    deleteList(cell);
-    }
-else
-    {
-    if(cell->contents == (UINT)sPtr)
-        {
-        expr = copyCell(expr); 
+        expr =  expand(copyCell(cell), sPtr);
         deleteList(cell);
-        }
+    }
     else
-        expr = cell;
+    {
+        if(cell->contents == (UINT)sPtr)
+        {
+            expr = copyCell(expr); 
+            deleteList(cell);
+        }
+        else
+            expr = cell;
     }
 
-sPtr->contents = (UINT)sCell;
-return(expr);
+    sPtr->contents = (UINT)sCell;
+    return(expr);
 }
 
 CELL * finishUnify(CELL * result)
 {
-CELL * left, * right;
-CELL * list = NULL;
-CELL * assoc,  * cell = NULL;
-SYMBOL * sPtr;
+    CELL * left, * right;
+    CELL * list = NULL;
+    CELL * assoc,  * cell = NULL;
+    SYMBOL * sPtr;
 
-if(result == nilCell)
+    if(result == nilCell)
     {
-    freeTermSet(&mgu);
-    freeTermSet(&ws);
-    return(nilCell);
+        freeTermSet(&mgu);
+        freeTermSet(&ws);
+        return(nilCell);
     }
 
 /* make an association list of all bound variables */
-while(mgu != NULL)
+    while(mgu != NULL)
     {
-    popSet(&mgu, &left, &right);
+        popSet(&mgu, &left, &right);
 
-    if(!bindFlag)
+        if(!bindFlag)
         {
-        assoc = getCell(CELL_EXPRESSION);
-        assoc->contents = (UINT)left;
-        left->next = right;
-        if(list == NULL)
+            assoc = getCell(CELL_EXPRESSION);
+            assoc->contents = (UINT)left;
+            left->next = right;
+            if(list == NULL)
             {
-            list = getCell(CELL_EXPRESSION);
-            list->contents = (UINT)assoc;
+                list = getCell(CELL_EXPRESSION);
+                list->contents = (UINT)assoc;
             }
-        else
-            cell->next = assoc;
-        cell = assoc;
+            else
+                cell->next = assoc;
+            cell = assoc;
         }
-    else
+        else
         {
-        sPtr = (SYMBOL*)left->contents;
-        if(isProtected(sPtr->flags))
-            return(errorProcExt2(ERR_SYMBOL_PROTECTED, stuffSymbol(sPtr)));
-        sPtr->contents = (UINT)right;
+            sPtr = (SYMBOL*)left->contents;
+            if(isProtected(sPtr->flags))
+                return(errorProcExt2(ERR_SYMBOL_PROTECTED, stuffSymbol(sPtr)));
+            sPtr->contents = (UINT)right;
         }
 
     }
 
-freeTermSet(&ws);
+    freeTermSet(&ws);
 
-if(!list || bindFlag) return(getCell(CELL_EXPRESSION));
-return(list);
+    if(!list || bindFlag) return(getCell(CELL_EXPRESSION));
+    return(list);
 }       
 
 
 void freeTermSet(TERMSET * * tset)
 {
-TERMSET * set;
+    TERMSET * set;
 
-while(*tset != NULL)
+    while(*tset != NULL)
     {
-    set = *tset;
-    deleteList(set->left);
-    deleteList(set->right);
-    *tset = set->next;
-    freeMemory(set);
+        set = *tset;
+        deleteList(set->left);
+        deleteList(set->right);
+        *tset = set->next;
+        freeMemory(set);
     }
 }
 
 #ifdef DEBUG
 void printStack(TERMSET * tset)
 {
-while(tset != NULL)
+    while(tset != NULL)
     {
-    printCell(tset->left, FALSE, OUT_CONSOLE);
-    printf("<->");
-    printCell(tset->right, FALSE, OUT_CONSOLE);
-    printf("\n");
-    tset = tset->next;
+        printCell(tset->left, FALSE, OUT_CONSOLE);
+        printf("<->");
+        printCell(tset->right, FALSE, OUT_CONSOLE);
+        printf("\n");
+        tset = tset->next;
     }
 }
 #endif
@@ -3490,32 +3490,32 @@ while(tset != NULL)
 
 CELL * p_bits(CELL * params) 
 { 
-int count = 0;
-int i; 
-char temp[65];
-char result[65];
-INT64 num;
-CELL * resultList;
+    int count = 0;
+    int i; 
+    char temp[65];
+    char result[65];
+    INT64 num;
+    CELL * resultList;
 
-params = getInteger64Ext(params, &num, TRUE);
+    params = getInteger64Ext(params, &num, TRUE);
 
-do  {
-    temp[count++] = (num % 2) != 0;
-    num = num >> 1; 
+    do  {
+        temp[count++] = (num % 2) != 0;
+        num = num >> 1; 
     } while (num != 0 && count < 64);
 
-if(getFlag(params))
+    if(getFlag(params))
     {
-    resultList = getCell(CELL_EXPRESSION);
-    for(i = 0; i < count; i++) 
-        addList(resultList, (copyCell (temp[i] ? trueCell : nilCell)));
-    return(resultList);
+        resultList = getCell(CELL_EXPRESSION);
+        for(i = 0; i < count; i++) 
+            addList(resultList, (copyCell (temp[i] ? trueCell : nilCell)));
+        return(resultList);
     }
 
-for(i = 0; i < count; i++) 
-    result[i] = temp[count - 1 - i] + 48;
+    for(i = 0; i < count; i++) 
+        result[i] = temp[count - 1 - i] + 48;
  
-return(stuffStringN(result, count));
+    return(stuffStringN(result, count));
 }
 
 
@@ -3524,21 +3524,21 @@ return(stuffStringN(result, count));
 
 CELL * isOddEven(CELL * params, int type)
 {
-INT64 num;
+    INT64 num;
 
-params = evaluateExpression(params);
+    params = evaluateExpression(params);
 
 #ifdef BIGINT
-if(params->type == CELL_BIGINT)
-    num = *((int *)params->contents + params->aux - 1);
-else
+    if(params->type == CELL_BIGINT)
+        num = *((int *)params->contents + params->aux - 1);
+    else
 #endif
-    getInteger64Ext(params, &num, FALSE);
+        getInteger64Ext(params, &num, FALSE);
 
-if(type == BOOL_EVEN)
-    return((0 == (num & 1)) ? trueCell : nilCell);
-else /* BOOL_ODD */
-    return((0 == (num & 1)) ? nilCell : trueCell);
+    if(type == BOOL_EVEN)
+        return((0 == (num & 1)) ? trueCell : nilCell);
+    else /* BOOL_ODD */
+        return((0 == (num & 1)) ? nilCell : trueCell);
 }
 
 CELL * p_isOdd(CELL * params)
@@ -3550,16 +3550,16 @@ CELL * p_isEven(CELL * params)
 /* used when passing 32bit floats to library routines */
 CELL * p_flt(CELL * params)
 {
-double dfloatV;
-float floatV;
-unsigned int number;
+    double dfloatV;
+    float floatV;
+    unsigned int number;
 
-getFloat(params, &dfloatV);
+    getFloat(params, &dfloatV);
 
-floatV = dfloatV;
-memcpy(&number, &floatV, 4);
+    floatV = dfloatV;
+    memcpy(&number, &floatV, 4);
 
-return(stuffInteger64(number));
+    return(stuffInteger64(number));
 }
 
 
@@ -3567,257 +3567,257 @@ return(stuffInteger64(number));
 
 double * getVector(CELL * data, UINT * N, double * Sum, double * Mean, double * Sd2)
 {
-CELL * cell;
-UINT idx, n;
-double * vector = NULL;
-double value, sum, ssq, sd2;
-CELL * * addr;
+    CELL * cell;
+    UINT idx, n;
+    double * vector = NULL;
+    double value, sum, ssq, sd2;
+    CELL * * addr;
 
-n = sum = ssq = 0;
-if(data->type == CELL_EXPRESSION)
+    n = sum = ssq = 0;
+    if(data->type == CELL_EXPRESSION)
     {
-    if((data = cell = (CELL *)data->contents) == nilCell)
-        return(NULL);
-    n = 1;
-    while(cell->next != nilCell) 
+        if((data = cell = (CELL *)data->contents) == nilCell)
+            return(NULL);
+        n = 1;
+        while(cell->next != nilCell) 
         { cell = cell->next; n++; }
-    cell = data;
-    vector = callocMemory(sizeof(double) * n);
-    for (idx = 0; idx < n; idx++)
+        cell = data;
+        vector = callocMemory(sizeof(double) * n);
+        for (idx = 0; idx < n; idx++)
         {
-        value = getDirectFloat(cell);
-        *(vector + idx) = value;
-        sum += value;
-        ssq += value * value;
-        cell = cell->next;
+            value = getDirectFloat(cell);
+            *(vector + idx) = value;
+            sum += value;
+            ssq += value * value;
+            cell = cell->next;
         }
     }
 
-else if(data->type == CELL_ARRAY)
+    else if(data->type == CELL_ARRAY)
     {
-    addr = (CELL * *)data->contents;
-    n = (data->aux - 1) / sizeof(CELL *);
-    vector = callocMemory(sizeof(double) * n);
-    for (idx = 0; idx < n; idx++)
+        addr = (CELL * *)data->contents;
+        n = (data->aux - 1) / sizeof(CELL *);
+        vector = callocMemory(sizeof(double) * n);
+        for (idx = 0; idx < n; idx++)
         {
-        cell = *(addr + idx);
-        value = getDirectFloat(cell);
-        *(vector + idx) = value;
-        sum += value;
-        ssq += value * value;
+            cell = *(addr + idx);
+            value = getDirectFloat(cell);
+            *(vector + idx) = value;
+            sum += value;
+            ssq += value * value;
         }
     }
-else return(NULL);
+    else return(NULL);
 	
-sd2 = ssq - sum * sum / n;
+    sd2 = ssq - sum * sum / n;
 
-*N = n;
-*Sum = sum;
-*Mean = sum / n;
-*Sd2 = sd2;
+    *N = n;
+    *Sum = sum;
+    *Mean = sum / n;
+    *Sd2 = sd2;
 
-return(vector);
+    return(vector);
 }
 
 
 CELL * p_stats(CELL * params)
 {
-CELL * cell;
-UINT N = 0;
-double sum, mean, sd2, avdev, sdev, var, skew, curt, s;
-double * vector;
-int idx;
+    CELL * cell;
+    UINT N = 0;
+    double sum, mean, sd2, avdev, sdev, var, skew, curt, s;
+    double * vector;
+    int idx;
 
-if((vector = getVector(evaluateExpression(params), &N, &sum, &mean, &sd2)) == NULL)
-    return(errorProc(ERR_LIST_OR_ARRAY_EXPECTED));
+    if((vector = getVector(evaluateExpression(params), &N, &sum, &mean, &sd2)) == NULL)
+        return(errorProc(ERR_LIST_OR_ARRAY_EXPECTED));
 
-var = sd2 / (N - 1);    /* pop variance */
-sdev = sqrt(var);       /* standard deviation */
+    var = sd2 / (N - 1);    /* pop variance */
+    sdev = sqrt(var);       /* standard deviation */
 
-skew = curt = avdev = 0.0;
-for(idx = 0; idx < N; idx++)
+    skew = curt = avdev = 0.0;
+    for(idx = 0; idx < N; idx++)
     {
-    s = vector[idx] - mean;
-    avdev += fabs(s);
-    skew += s * s * s;
-    curt += s * s * s * s;
+        s = vector[idx] - mean;
+        avdev += fabs(s);
+        skew += s * s * s;
+        curt += s * s * s * s;
     }
-avdev /= N;
+    avdev /= N;
 
-freeMemory(vector);
+    freeMemory(vector);
 
-if(var != 0.0)
+    if(var != 0.0)
     {
-    skew = skew / (N * var * sdev);
-    curt = curt / (N * var * var) - 3.0; 
+        skew = skew / (N * var * sdev);
+        curt = curt / (N * var * var) - 3.0; 
     }
-else skew = curt = 0.0;
+    else skew = curt = 0.0;
 
-cell = getCell(CELL_EXPRESSION);
-addList(cell, stuffInteger(N));
-addList(cell, stuffFloat(mean));
-addList(cell, stuffFloat(avdev));
-addList(cell, stuffFloat(sdev));
-addList(cell, stuffFloat(var));
-addList(cell, stuffFloat(skew));
-addList(cell, stuffFloat(curt));
+    cell = getCell(CELL_EXPRESSION);
+    addList(cell, stuffInteger(N));
+    addList(cell, stuffFloat(mean));
+    addList(cell, stuffFloat(avdev));
+    addList(cell, stuffFloat(sdev));
+    addList(cell, stuffFloat(var));
+    addList(cell, stuffFloat(skew));
+    addList(cell, stuffFloat(curt));
 
-return(cell);
+    return(cell);
 }
 
 CELL * p_ttest(CELL * params)
 {
-UINT Nx, Ny, df;
-double sumx, sumy, sumxy;
-double meanx, meany;
-double sd2x, sd2y;
-double varx, vary;
-double sdevx, sdevy;
-double * X;
-double * Y;
-double svar, cov, t, tprob;
-CELL * cell;
-int dependent = FALSE, idx;
-double pF = 0.0;
+    UINT Nx, Ny, df;
+    double sumx, sumy, sumxy;
+    double meanx, meany;
+    double sd2x, sd2y;
+    double varx, vary;
+    double sdevx, sdevy;
+    double * X;
+    double * Y;
+    double svar, cov, t, tprob;
+    CELL * cell;
+    int dependent = FALSE, idx;
+    double pF = 0.0;
 
-if((X = getVector(evaluateExpression(params), &Nx, &sumx, &meanx, &sd2x)) == NULL)
-    return(errorProc(ERR_LIST_OR_ARRAY_EXPECTED));
-params = params->next;
+    if((X = getVector(evaluateExpression(params), &Nx, &sumx, &meanx, &sd2x)) == NULL)
+        return(errorProc(ERR_LIST_OR_ARRAY_EXPECTED));
+    params = params->next;
 
-cell = evaluateExpression(params);
-if(isNumber(cell->type)) /* One sample t-test */
+    cell = evaluateExpression(params);
+    if(isNumber(cell->type)) /* One sample t-test */
     {
-    meany = getDirectFloat(cell);
-    sdevx = sqrt(sd2x / (Nx - 1));
-    sdevy = sdevx / sqrt(Nx); /* standard error of difference */
-    t = (meanx - meany) / ( sdevx / sqrt(Nx) );
-    df = Nx - 1;
-    goto TTEST_RESULT;
+        meany = getDirectFloat(cell);
+        sdevx = sqrt(sd2x / (Nx - 1));
+        sdevy = sdevx / sqrt(Nx); /* standard error of difference */
+        t = (meanx - meany) / ( sdevx / sqrt(Nx) );
+        df = Nx - 1;
+        goto TTEST_RESULT;
     }
 
-if((Y = getVector(evaluateExpression(params), &Ny, &sumy, &meany, &sd2y)) == NULL)
-    return(errorProc(ERR_LIST_OR_ARRAY_EXPECTED));
+    if((Y = getVector(evaluateExpression(params), &Ny, &sumy, &meany, &sd2y)) == NULL)
+        return(errorProc(ERR_LIST_OR_ARRAY_EXPECTED));
 
-sumxy = 0.0;
-for(idx = 0; idx < Nx; idx++)
-    sumxy += X[idx] * Y[idx];
+    sumxy = 0.0;
+    for(idx = 0; idx < Nx; idx++)
+        sumxy += X[idx] * Y[idx];
 
-freeMemory(X);
-freeMemory(Y);
+    freeMemory(X);
+    freeMemory(Y);
 
-cell = evaluateExpression(params->next);
-if(cell == trueCell)
+    cell = evaluateExpression(params->next);
+    if(cell == trueCell)
     {
-    dependent = TRUE;
-    if(Nx != Ny)
-        return(errorProc(ERR_WRONG_DIMENSIONS));
+        dependent = TRUE;
+        if(Nx != Ny)
+            return(errorProc(ERR_WRONG_DIMENSIONS));
     }
-else if(isNumber(cell->type))
-    pF = getDirectFloat(cell);
+    else if(isNumber(cell->type))
+        pF = getDirectFloat(cell);
 
-varx = sd2x / (Nx - 1);
-vary = sd2y / (Ny - 1);
-sdevx = sqrt(varx);
-sdevy = sqrt(vary);
-cov = sumxy - sumx * sumy / Nx;
+    varx = sd2x / (Nx - 1);
+    vary = sd2y / (Ny - 1);
+    sdevx = sqrt(varx);
+    sdevy = sqrt(vary);
+    cov = sumxy - sumx * sumy / Nx;
 
 /* t for related samples  Nx = Ny */
-if(dependent)
+    if(dependent)
     {
-    df = Nx - 1;
-    cov /= df;
-    t = (meanx - meany) / sqrt((varx + vary - 2.0 * cov) / Nx);
+        df = Nx - 1;
+        cov /= df;
+        t = (meanx - meany) / sqrt((varx + vary - 2.0 * cov) / Nx);
     }
 /* t for different means in non-related samples */
-else
-    {
-    /* if varx and vary are not equal calc Welch Student's t */
-    if(pF != 0.0 && probF(varx/vary, Nx - 1, Ny - 1) < pF) 
-        {
-        t = (meanx - meany) / sqrt(varx/Nx + vary/Ny);
-        df = ((varx/Nx + vary/Ny) * (varx/Nx + vary/Ny)) / 
-             (((varx/Nx) * (varx/Nx)) / (Nx - 1) + ((vary/Ny) * (vary/Ny))/(Ny - 1));
-        }
-    /* assume varx and vary are equal */
     else
+    {
+        /* if varx and vary are not equal calc Welch Student's t */
+        if(pF != 0.0 && probF(varx/vary, Nx - 1, Ny - 1) < pF) 
         {
-        df = Nx + Ny - 2;
-        svar = (sd2x + sd2y) / df;
-        t = (meanx - meany) / sqrt(svar * (1.0/Nx + 1.0/Ny));
+            t = (meanx - meany) / sqrt(varx/Nx + vary/Ny);
+            df = ((varx/Nx + vary/Ny) * (varx/Nx + vary/Ny)) / 
+                (((varx/Nx) * (varx/Nx)) / (Nx - 1) + ((vary/Ny) * (vary/Ny))/(Ny - 1));
+        }
+        /* assume varx and vary are equal */
+        else
+        {
+            df = Nx + Ny - 2;
+            svar = (sd2x + sd2y) / df;
+            t = (meanx - meany) / sqrt(svar * (1.0/Nx + 1.0/Ny));
         }
     }
 
 TTEST_RESULT:
-tprob = 2.0 * (1.0 - probT(fabs(t), df)); /* two tailed */
-cell = getCell(CELL_EXPRESSION);
-addList(cell, stuffFloat(meanx));
-addList(cell, stuffFloat(meany));
-addList(cell, stuffFloat(sdevx));
-addList(cell, stuffFloat(sdevy));
-addList(cell, stuffFloat(t));
-addList(cell, stuffInteger(df));
-addList(cell, stuffFloat(tprob));
+    tprob = 2.0 * (1.0 - probT(fabs(t), df)); /* two tailed */
+    cell = getCell(CELL_EXPRESSION);
+    addList(cell, stuffFloat(meanx));
+    addList(cell, stuffFloat(meany));
+    addList(cell, stuffFloat(sdevx));
+    addList(cell, stuffFloat(sdevy));
+    addList(cell, stuffFloat(t));
+    addList(cell, stuffInteger(df));
+    addList(cell, stuffFloat(tprob));
 
-return(cell);
+    return(cell);
 }
 
 
 CELL * p_corr(CELL * params)
 {
-UINT idx, Nx, Ny, df;
-double * X;
-double * Y;
-double sumxy, sumx, sumy, meanx, meany, sd2x, sd2y;
-double cov, corr, b0, b1, t, tprob;
-CELL * cell;
+    UINT idx, Nx, Ny, df;
+    double * X;
+    double * Y;
+    double sumxy, sumx, sumy, meanx, meany, sd2x, sd2y;
+    double cov, corr, b0, b1, t, tprob;
+    CELL * cell;
 
 
-if((X = getVector(evaluateExpression(params), &Nx, &sumx, &meanx, &sd2x)) == NULL)
-    return(errorProc(ERR_LIST_OR_ARRAY_EXPECTED));
-if((Y = getVector(evaluateExpression(params->next), &Ny, &sumy, &meany, &sd2y)) == NULL)
-    return(errorProc(ERR_LIST_OR_ARRAY_EXPECTED));
+    if((X = getVector(evaluateExpression(params), &Nx, &sumx, &meanx, &sd2x)) == NULL)
+        return(errorProc(ERR_LIST_OR_ARRAY_EXPECTED));
+    if((Y = getVector(evaluateExpression(params->next), &Ny, &sumy, &meany, &sd2y)) == NULL)
+        return(errorProc(ERR_LIST_OR_ARRAY_EXPECTED));
 
-if(Nx != Ny)
-    return(errorProc(ERR_WRONG_DIMENSIONS));
+    if(Nx != Ny)
+        return(errorProc(ERR_WRONG_DIMENSIONS));
 
-sumxy = 0.0;
-for(idx = 0; idx < Nx; idx++)
-    sumxy += X[idx] * Y[idx];
+    sumxy = 0.0;
+    for(idx = 0; idx < Nx; idx++)
+        sumxy += X[idx] * Y[idx];
 
-freeMemory(X);
-freeMemory(Y);
+    freeMemory(X);
+    freeMemory(Y);
 
-cov = sumxy - sumx * sumy / Nx;
-corr = cov / sqrt(sd2x * sd2y);
-b1 = cov / sd2x;
-b0 = meany - b1 * meanx;
-t = corr * sqrt((Nx - 2) / (1.0 - corr * corr));
+    cov = sumxy - sumx * sumy / Nx;
+    corr = cov / sqrt(sd2x * sd2y);
+    b1 = cov / sd2x;
+    b0 = meany - b1 * meanx;
+    t = corr * sqrt((Nx - 2) / (1.0 - corr * corr));
 
 /* standard error of corr */
 /* rse = sqrt( (1.0 - corr * corr) / (Nx - 2) ); */
 /* see http://irthoughts.wordpress.com/2010/06/10/on-spearmans-correlation-coefficients-with-excel/ */
 /* rse = corr / t; */
 
-df = Nx - 2;
-tprob = 2 * (1.0 - probT(fabs(t), df)); /* two tailed */
+    df = Nx - 2;
+    tprob = 2 * (1.0 - probT(fabs(t), df)); /* two tailed */
 
-cell = getCell(CELL_EXPRESSION);
-addList(cell, stuffFloat(corr));
-addList(cell, stuffFloat(b0)); /* y = b0 + b1*x */
-addList(cell, stuffFloat(b1));
-addList(cell, stuffFloat(t));
-addList(cell, stuffInteger(df));
-addList(cell, stuffFloat(tprob));
+    cell = getCell(CELL_EXPRESSION);
+    addList(cell, stuffFloat(corr));
+    addList(cell, stuffFloat(b0)); /* y = b0 + b1*x */
+    addList(cell, stuffFloat(b1));
+    addList(cell, stuffFloat(t));
+    addList(cell, stuffInteger(df));
+    addList(cell, stuffFloat(tprob));
 
-return(cell);
+    return(cell);
 }
 
 /* ============================= Big Integer support ============================= */
 
 /* other big int libs:
-    GNU GMP https://gmplib.org/
-    MPIR http://www.mpir.org/ 
-    BSDNT https://github.com/wbhart/bsdnt 
+   GNU GMP https://gmplib.org/
+   MPIR http://www.mpir.org/ 
+   BSDNT https://github.com/wbhart/bsdnt 
 */
 
 #ifdef BIGINT
@@ -3826,30 +3826,30 @@ return(cell);
 
 CELL * p_bigInt(CELL * params)
 {
-int * numPtr;
-int len, size = 0;
-CELL * cell;
-char * ptr;
+    int * numPtr;
+    int len, size = 0;
+    CELL * cell;
+    char * ptr;
 
-cell = evaluateExpression(params);
-if(cell->type == CELL_BIGINT)
-    return(copyCell(cell));
+    cell = evaluateExpression(params);
+    if(cell->type == CELL_BIGINT)
+        return(copyCell(cell));
 
-if(cell->type == CELL_STRING)
+    if(cell->type == CELL_STRING)
     {
-    ptr = (char *)cell->contents;
-    if(*ptr == '-' || *ptr == '+') ++size, ptr++;
-    while(isdigit(*ptr++)) ++size;
-    if(size == 0) return(nilCell);
-    numPtr = strToBigint((char *)cell->contents, size, &len);
+        ptr = (char *)cell->contents;
+        if(*ptr == '-' || *ptr == '+') ++size, ptr++;
+        while(isdigit(*ptr++)) ++size;
+        if(size == 0) return(nilCell);
+        numPtr = strToBigint((char *)cell->contents, size, &len);
     }
-else getBigintSizeDirect(cell, &numPtr, &len);
+    else getBigintSizeDirect(cell, &numPtr, &len);
 
-cell = getCell(CELL_BIGINT);
-cell->aux = len + 1;
-cell->contents = (UINT)numPtr;
+    cell = getCell(CELL_BIGINT);
+    cell->aux = len + 1;
+    cell->contents = (UINT)numPtr;
 
-return(cell);
+    return(cell);
 }
 
 /* does not do evaluate expression on cell
@@ -3858,49 +3858,49 @@ return(cell);
 */
 int * getBigintSizeDirect(CELL * cell, int * * numPtr, int * len)
 {
-int size = 0;
-int * num = NULL;
+    int size = 0;
+    int * num = NULL;
 
 #ifndef NEWLISP64
-if(cell->type == CELL_INT64)
-    num = intToBigint(*(INT64 *)&cell->aux, &size);
-else if(cell->type == CELL_LONG)
-    num = intToBigint((INT64)cell->contents, &size);
-else if(cell->type == CELL_FLOAT)
+    if(cell->type == CELL_INT64)
+        num = intToBigint(*(INT64 *)&cell->aux, &size);
+    else if(cell->type == CELL_LONG)
+        num = intToBigint((INT64)cell->contents, &size);
+    else if(cell->type == CELL_FLOAT)
     {
 #ifdef WINDOWS
-    if(isnan(*(double *)&cell->aux) || !_finite(*(double *)&cell->aux)) 
-        num = intToBigint(0, &size);
-    num = floatToBigint(*(double *)&cell->aux, &size);
+        if(isnan(*(double *)&cell->aux) || !_finite(*(double *)&cell->aux)) 
+            num = intToBigint(0, &size);
+        num = floatToBigint(*(double *)&cell->aux, &size);
 #else
-    if(isnan(*(double *)&cell->aux)) 
-        num = intToBigint(0, &size);
-    num = floatToBigint(*(double *)&cell->aux, &size);
+        if(isnan(*(double *)&cell->aux)) 
+            num = intToBigint(0, &size);
+        num = floatToBigint(*(double *)&cell->aux, &size);
 #endif
     }
 #else /* NEWLISP64 */
-if(cell->type == CELL_LONG)
-    num = intToBigint((INT64)cell->contents, &size);
-else if(cell->type == CELL_FLOAT)
+    if(cell->type == CELL_LONG)
+        num = intToBigint((INT64)cell->contents, &size);
+    else if(cell->type == CELL_FLOAT)
     {
-    if(isnan(*(double *)&cell->contents))  
-        num = intToBigint(0, &size);
-    num = floatToBigint( *(double *)&cell->contents, &size);
+        if(isnan(*(double *)&cell->contents))  
+            num = intToBigint(0, &size);
+        num = floatToBigint( *(double *)&cell->contents, &size);
     }
 #endif
-else if(cell->type == CELL_BIGINT)
+    else if(cell->type == CELL_BIGINT)
     {
-    *numPtr = (int *)cell->contents;
-    *len = cell->aux - 1;
-    return(NULL);
+        *numPtr = (int *)cell->contents;
+        *len = cell->aux - 1;
+        return(NULL);
     }
-else 
-    errorProcArgs(ERR_NUMBER_EXPECTED, cell);
+    else 
+        errorProcArgs(ERR_NUMBER_EXPECTED, cell);
 
-*numPtr = num;
-*len = size;
+    *numPtr = num;
+    *len = size;
 
-return(num);
+    return(num);
 }
 
 
@@ -3909,48 +3909,48 @@ return(num);
 */
 int * strToBigint(char * str, int len, int * intlen)
 {
-int n, i, j, cut;
-int sign = 1;
-char * ptr = str;
-int * num;
+    int n, i, j, cut;
+    int sign = 1;
+    char * ptr = str;
+    int * num;
 
 /* don't look at trailing L */
-if(*(str + len - 1) == 'L')
-    len--;
+    if(*(str + len - 1) == 'L')
+        len--;
 
 /* skip leading sign */
-if(*ptr == '-' || *ptr == '+')
+    if(*ptr == '-' || *ptr == '+')
     {
-    sign = (*ptr == '-') ? -1 : 1;
-    ptr++;
-    len--;
+        sign = (*ptr == '-') ? -1 : 1;
+        ptr++;
+        len--;
     }
 
 /* remove leading zeros */
-while(len > 1 && *ptr == '0')
+    while(len > 1 && *ptr == '0')
     {
-    ptr++;
-    len--;
+        ptr++;
+        len--;
     }
 
-n = len / 9 + 1;
-cut = len % 9;
-if(cut) n++;
-else cut = 9;
+    n = len / 9 + 1;
+    cut = len % 9;
+    if(cut) n++;
+    else cut = 9;
 
-num = calloc(sizeof(int), n);
-num[0] = sign;
+    num = calloc(sizeof(int), n);
+    num[0] = sign;
 
-for(i = 1; i < n; i++)
+    for(i = 1; i < n; i++)
     {
-    for(j = 0; j < cut; j++)
-	num[i] = 10 * num[i] + ptr[j] - 48;
-    ptr += cut;
-    cut = 9;
+        for(j = 0; j < cut; j++)
+            num[i] = 10 * num[i] + ptr[j] - 48;
+        ptr += cut;
+        cut = 9;
     }
 
-*intlen = n - 1;
-return(num);
+    *intlen = n - 1;
+    return(num);
 }
 
 
@@ -3961,60 +3961,60 @@ return(num);
 */
 char * bigintToDigits(int * num, int n, int offset, int * slen)
 {
-int i, j, k = 0, cnt = 0, len = 0;
-int q, basediv;
-char * digits;
-int bigdigit;
+    int i, j, k = 0, cnt = 0, len = 0;
+    int q, basediv;
+    char * digits;
+    int bigdigit;
 
-if(n == 1 && num[1] == 0)
+    if(n == 1 && num[1] == 0)
     {
-    digits = calloc(3, 1);
-    if(offset == 0)
+        digits = calloc(3, 1);
+        if(offset == 0)
         {
-        digits[0] = '1';
-        digits[1] = 0;
+            digits[0] = '1';
+            digits[1] = 0;
         }
-    else
-        digits[0] = '0';
-    return(digits); 
+        else
+            digits[0] = '0';
+        return(digits); 
     }
 
 /* cnt of digits in first big digit */
-bigdigit = num[1];
-basediv = BIGINT_BASE / 10;
-while(bigdigit / basediv == 0)
-    {
-    basediv /= 10;
-    cnt++;
-    }
-
-cnt = 9 - cnt;
-len = 9 * (n - 1) + cnt;
-
-digits = calloc(len + 2, 1);
-if(offset != 0)
-    {
-    if(num[0] == -1) digits[k++] = '-';
-    }
-else
-    digits[k++] = num[0];
-
-for(i = 1; i <=n; i++)
-    {
-    bigdigit = num[i];
-    for(j = 0; j < cnt; j++)
-        {
-        q = bigdigit / basediv;
-        digits[k++] = q + offset;
-        bigdigit -= q * basediv;
-        basediv /= 10; 
-        }
+    bigdigit = num[1];
     basediv = BIGINT_BASE / 10;
-    cnt = 9;
+    while(bigdigit / basediv == 0)
+    {
+        basediv /= 10;
+        cnt++;
     }
 
-if(slen) *slen = len;
-return(digits);
+    cnt = 9 - cnt;
+    len = 9 * (n - 1) + cnt;
+
+    digits = calloc(len + 2, 1);
+    if(offset != 0)
+    {
+        if(num[0] == -1) digits[k++] = '-';
+    }
+    else
+        digits[k++] = num[0];
+
+    for(i = 1; i <=n; i++)
+    {
+        bigdigit = num[i];
+        for(j = 0; j < cnt; j++)
+        {
+            q = bigdigit / basediv;
+            digits[k++] = q + offset;
+            bigdigit -= q * basediv;
+            basediv /= 10; 
+        }
+        basediv = BIGINT_BASE / 10;
+        cnt = 9;
+    }
+
+    if(slen) *slen = len;
+    return(digits);
 } 
 
 /* digits come in high to low with leading sign digit (1 or -1)
@@ -4023,358 +4023,358 @@ return(digits);
 
 int * addBigint(int * x, int nx, int * y, int ny, int * sm, int * nsm)
 {
-int i, carry = 0, digit, n, d, sign;
-int * ptr;
+    int i, carry = 0, digit, n, d, sign;
+    int * ptr;
 
-if(nx < ny)
+    if(nx < ny)
     {
-    n = nx; nx = ny; ny = n;
-    ptr = x; x = y; y = ptr;
+        n = nx; nx = ny; ny = n;
+        ptr = x; x = y; y = ptr;
     }
-d = nx - ny;
+    d = nx - ny;
 
-if(*x != *y) /* signs are different */
+    if(*x != *y) /* signs are different */
     {
-    sign = x[0]; 
-    y[0] = sign;
-    sm = subBigint(x, nx, y, ny, sm, nsm);
-    x[0] = sign; y[0] = sign * -1;
-    return(sm);
+        sign = x[0]; 
+        y[0] = sign;
+        sm = subBigint(x, nx, y, ny, sm, nsm);
+        x[0] = sign; y[0] = sign * -1;
+        return(sm);
     }
     
-ptr = sm + 1;
+    ptr = sm + 1;
 
 /* memset(sm, 0, (nx + 2) * sizeof(int)); */
 
-for(i = ny; i > 0; i--) /* ny is the smaller */
+    for(i = ny; i > 0; i--) /* ny is the smaller */
     {
-    digit = x[i + d] + y[i] + carry;
-    carry = digit / BIGINT_BASE;
-    ptr[i + d] = digit % BIGINT_BASE;
+        digit = x[i + d] + y[i] + carry;
+        carry = digit / BIGINT_BASE;
+        ptr[i + d] = digit % BIGINT_BASE;
     }
 
-for(i = nx - ny; i > 0; i--) /* nx is the bigger */
+    for(i = nx - ny; i > 0; i--) /* nx is the bigger */
     {
-    digit = x[i] + carry;
-    carry = digit / BIGINT_BASE;
-    ptr[i] = digit % BIGINT_BASE;
+        digit = x[i] + carry;
+        carry = digit / BIGINT_BASE;
+        ptr[i] = digit % BIGINT_BASE;
     }
-ptr[0] = carry;
+    ptr[0] = carry;
 
-if(*ptr == 0)
+    if(*ptr == 0)
     {
-    for(i = 0; i < nx; i++)
-        ptr[i] = ptr[i + 1];
-    *nsm = nx;
+        for(i = 0; i < nx; i++)
+            ptr[i] = ptr[i + 1];
+        *nsm = nx;
     }
-else
-    *nsm = nx + 1;
+    else
+        *nsm = nx + 1;
 
-sm[0] = x[0];
+    sm[0] = x[0];
 
-return(sm);
+    return(sm);
 }
 
     
 int * subBigint(int * x, int nx, int * y, int ny, int * sm, int * nsm)
 {
-INT64 digit;
-int * ptr;
-int sign, i, j, n, carry = 0;
+    INT64 digit;
+    int * ptr;
+    int sign, i, j, n, carry = 0;
 
-if(*x != *y)
+    if(*x != *y)
     {
-    sign = x[0];
-    y[0] = sign;
-    addBigint(x, nx, y, ny, sm, nsm);
-    x[0] = sign; y[0] = sign * -1;
-    return(sm); 
+        sign = x[0];
+        y[0] = sign;
+        addBigint(x, nx, y, ny, sm, nsm);
+        x[0] = sign; y[0] = sign * -1;
+        return(sm); 
     }
 
 /* compare and subtract the abs(smaller) from the abs(greater) */
-if(cmpAbsBigint(x, nx, y, ny) >= 1)
-    sm[0] = x[0];
-else
+    if(cmpAbsBigint(x, nx, y, ny) >= 1)
+        sm[0] = x[0];
+    else
     {
-    sm[0] = x[0] * -1;
-    n = nx; nx = ny; ny = n;
-    ptr = x; x = y; y = ptr; 
+        sm[0] = x[0] * -1;
+        n = nx; nx = ny; ny = n;
+        ptr = x; x = y; y = ptr; 
     }
 
-for(i = nx, j = ny; i > 0; i--, j--)
+    for(i = nx, j = ny; i > 0; i--, j--)
     {
-    if(j > 0)
-        digit = (INT64)x[i] - y[j] - carry;
-    else
-        digit = (INT64)x[i] - carry;
-    if(digit < 0)
+        if(j > 0)
+            digit = (INT64)x[i] - y[j] - carry;
+        else
+            digit = (INT64)x[i] - carry;
+        if(digit < 0)
         {
-        digit = digit + BIGINT_BASE;
-        carry = 1;
+            digit = digit + BIGINT_BASE;
+            carry = 1;
         }
-    else
-        carry = 0;
+        else
+            carry = 0;
 
-    sm[i] = digit % BIGINT_BASE;
+        sm[i] = digit % BIGINT_BASE;
     }
 
-i = 1; n = 0;
+    i = 1; n = 0;
 
 /* remove leading zero's */
-while (sm[i] == 0 && i <= nx) n++, i++;
-if(n == nx)
+    while (sm[i] == 0 && i <= nx) n++, i++;
+    if(n == nx)
     {
-    *nsm = 1;
-    return(sm);
+        *nsm = 1;
+        return(sm);
     }
 
-memmove((char *)sm + 1 * sizeof(int), (char *)sm + (n + 1) * sizeof(int), (nx - n) * sizeof(int));
-*nsm = (nx - n);
+    memmove((char *)sm + 1 * sizeof(int), (char *)sm + (n + 1) * sizeof(int), (nx - n) * sizeof(int));
+    *nsm = (nx - n);
 
-return(sm);
+    return(sm);
 }
 
 
 int * mulBigint(int * x, int nx, int * y,  int ny, int * p, int * n)
 {
-int i, j, k, carry;
-INT64 digit;
+    int i, j, k, carry;
+    INT64 digit;
 
-memset(p, 0, (nx + ny + 1) * sizeof(int));
-for(i = ny; i > 0 ; i--) /* for each digit in multiplier */
+    memset(p, 0, (nx + ny + 1) * sizeof(int));
+    for(i = ny; i > 0 ; i--) /* for each digit in multiplier */
     {
-    carry = 0;
-    for(j = nx; j > 0; j--)
+        carry = 0;
+        for(j = nx; j > 0; j--)
         {
-        digit = (INT64)p[j + i] + (INT64)y[i] * x[j] + carry;
-        carry = digit / BIGINT_BASE;
-        p[j + i] = digit % BIGINT_BASE;
+            digit = (INT64)p[j + i] + (INT64)y[i] * x[j] + carry;
+            carry = digit / BIGINT_BASE;
+            p[j + i] = digit % BIGINT_BASE;
         }
-    digit = (INT64)p[i] + carry;
-    p[i] = digit % BIGINT_BASE;
+        digit = (INT64)p[i] + carry;
+        p[i] = digit % BIGINT_BASE;
     }
 
 /* remove leading zero's */
-k = nx + ny;
-while(p[1] == 0 && k > 1)
+    k = nx + ny;
+    while(p[1] == 0 && k > 1)
     {
-    for(i = 1; i < k; i++)
-        p[i] = p[i + 1];
-    k--;
+        for(i = 1; i < k; i++)
+            p[i] = p[i + 1];
+        k--;
     }
 
 /* set sign  and n */
-*p = *x * *y;
-*n = k;
-return(p);
+    *p = *x * *y;
+    *n = k;
+    return(p);
 }
 
 
 /* q = x/y - caller must _not_ allocate space for q
-*/
+ */
 int * divModBigint(int * x, int nx, int * y, int ny, int rmndr, int * nq)
 {
-int * r;
-int * q;
-int * p;
-int * ptr;
-INT64 digit;
-int i, j, k, carry;
-int nr, sq, n, pn;
+    int * r;
+    int * q;
+    int * p;
+    int * ptr;
+    INT64 digit;
+    int i, j, k, carry;
+    int nr, sq, n, pn;
 /* turn of certain optimizations using 'volatile' necessary 
    on Linux but will no affect performance on other platforms
 */
-volatile double rFloat, yFloat;
+    volatile double rFloat, yFloat;
 
-if(y[1] == 0 && ny == 1)
-    errorProc(ERR_MATH);
+    if(y[1] == 0 && ny == 1)
+        errorProc(ERR_MATH);
 
-if(cmpAbsBigint(x, nx, y, ny) < 0)
+    if(cmpAbsBigint(x, nx, y, ny) < 0)
     {
-    if(rmndr)
+        if(rmndr)
         {
-        q = malloc((nx + 1) * sizeof(int));
-        memcpy((void *)q, (void *)x, (nx + 1) * sizeof(int));
-        *nq = nx;
+            q = malloc((nx + 1) * sizeof(int));
+            memcpy((void *)q, (void *)x, (nx + 1) * sizeof(int));
+            *nq = nx;
         }
-    else
+        else
         {
-        q = malloc(sizeof(int) * 2);
-        q[0] = 1; q[1] = 0;
-        *nq = 1;
+            q = malloc(sizeof(int) * 2);
+            q[0] = 1; q[1] = 0;
+            *nq = 1;
         }
-    return(q);
+        return(q);
     }
 
-r = alloca((nx + 1) * sizeof(int));
-q = alloca((nx - ny + 1) * sizeof(int));
-p = alloca((nx + 1) * sizeof(int));
+    r = alloca((nx + 1) * sizeof(int));
+    q = alloca((nx - ny + 1) * sizeof(int));
+    p = alloca((nx + 1) * sizeof(int));
 
-nr = 0; sq = 0;
-r[0] = q[0] = p[0] = 1; 
-yFloat = bigintToAbsFloat(y, (ny > 2) ? 2 : ny);
+    nr = 0; sq = 0;
+    r[0] = q[0] = p[0] = 1; 
+    yFloat = bigintToAbsFloat(y, (ny > 2) ? 2 : ny);
 #ifdef DEBUG
-printf("yFloat %f\n", yFloat); 
+    printf("yFloat %f\n", yFloat); 
 #endif
-for(i = 1; i <= nx; i++)    
+    for(i = 1; i <= nx; i++)    
     {
 #ifdef DEBUG
-    printf("i = %d\n", i);
+        printf("i = %d\n", i);
 #endif
-    r[++nr] = x[i];
+        r[++nr] = x[i];
 #ifdef DEBUG
-    debug(r, nr, "r after <- x[i]");
+        debug(r, nr, "r after <- x[i]");
 #endif
-    if(sq == 0 && cmpAbsBigint(r, nr, y, ny) < 0)
-        continue;
+        if(sq == 0 && cmpAbsBigint(r, nr, y, ny) < 0)
+            continue;
 
-    n = (ny > 2) ? (nr + 2 - ny) : nr; 
-    rFloat = bigintToAbsFloat(r, n);
+        n = (ny > 2) ? (nr + 2 - ny) : nr; 
+        rFloat = bigintToAbsFloat(r, n);
 #ifdef DEBUG
-    printf("rFloat %f\n", rFloat); 
+        printf("rFloat %f\n", rFloat); 
 #endif
 
-    if(yFloat > rFloat)
+        if(yFloat > rFloat)
         {
 #ifdef DEBUG
-        printf("yFloat > rFloat\n");
+            printf("yFloat > rFloat\n");
 #endif
-        q[++sq] = 0;
-        goto TRIM_ZEROS;
+            q[++sq] = 0;
+            goto TRIM_ZEROS;
         }
 
-    if(yFloat == rFloat)
+        if(yFloat == rFloat)
         {
 #ifdef DEBUG
-        printf("yFloat == rFloat\n");
+            printf("yFloat == rFloat\n");
 #endif
-        q[++sq] = 1;
+            q[++sq] = 1;
         }
-    else 
-        q[++sq] = rFloat / yFloat + 1.0; /* like ceil() */
+        else 
+            q[++sq] = rFloat / yFloat + 1.0; /* like ceil() */
 #ifdef DEBUG
-    debug(q, sq, "q after float div");
+        debug(q, sq, "q after float div");
 #endif
 
-    PRODUCT: 
-    carry = 0;
-    for(j = ny, pn = ny; j > 0; j--)
+PRODUCT: 
+        carry = 0;
+        for(j = ny, pn = ny; j > 0; j--)
         {
-        digit = (INT64)y[j] * q[sq] + carry;
-        if(digit >= BIGINT_BASE)
+            digit = (INT64)y[j] * q[sq] + carry;
+            if(digit >= BIGINT_BASE)
             {
-            p[j] = digit % BIGINT_BASE;
-            carry = digit/BIGINT_BASE;
+                p[j] = digit % BIGINT_BASE;
+                carry = digit/BIGINT_BASE;
             }
-        else
-            p[j] = digit, carry = 0;
+            else
+                p[j] = digit, carry = 0;
         }
-    if(carry) /* shift right */
+        if(carry) /* shift right */
         {
-        for(j = ny; j > 0; j--) p[j+1] = p[j];
-        p[1] = carry, ++pn;
+            for(j = ny; j > 0; j--) p[j+1] = p[j];
+            p[1] = carry, ++pn;
         }
 #ifdef DEBUG
-    debug(p, pn, "p product");
+        debug(p, pn, "p product");
 #endif
-    if(cmpAbsBigint(r, nr, p, pn) < 0) 
+        if(cmpAbsBigint(r, nr, p, pn) < 0) 
         {
-        q[sq] = q[sq] - 1; /* q[sq] too big */
+            q[sq] = q[sq] - 1; /* q[sq] too big */
 #ifdef DEBUG
-        printf("decrementing q[sq]\n");
+            printf("decrementing q[sq]\n");
 #endif
-        goto PRODUCT;
+            goto PRODUCT;
         }
 
-    /* ----- inlined from subBigint ----- */
-    for(k = nr, j = pn, carry = 0; k > 0; k--, j--)
+        /* ----- inlined from subBigint ----- */
+        for(k = nr, j = pn, carry = 0; k > 0; k--, j--)
         {
-        if(j > 0)
-            digit = (INT64)r[k] - p[j] - carry;
-        else
-            digit = (INT64)r[k] - carry;
-        if(digit < 0)
+            if(j > 0)
+                digit = (INT64)r[k] - p[j] - carry;
+            else
+                digit = (INT64)r[k] - carry;
+            if(digit < 0)
             {
-            digit += BIGINT_BASE;
-            carry = 1;
+                digit += BIGINT_BASE;
+                carry = 1;
             }
-        else
-            carry = 0;
+            else
+                carry = 0;
 
-        r[k] = digit % BIGINT_BASE;
+            r[k] = digit % BIGINT_BASE;
         }
-    /* trim leading zero's */
+        /* trim leading zero's */
 TRIM_ZEROS:
-    if(r[1] == 0) {
-        k = 1; n = 0;
-        while (r[k] == 0 && k <= nr) n++, k++;
-        if(n == nr) nr = 1;
-        else
+        if(r[1] == 0) {
+            k = 1; n = 0;
+            while (r[k] == 0 && k <= nr) n++, k++;
+            if(n == nr) nr = 1;
+            else
             {
-            nr = (nr - n);
-            memmove((char *)r + 1 * sizeof(int), 
-                (char *)r + (n + 1) * sizeof(int), nr * sizeof(int));
+                nr = (nr - n);
+                memmove((char *)r + 1 * sizeof(int), 
+                        (char *)r + (n + 1) * sizeof(int), nr * sizeof(int));
             }
         }
 #ifdef DEBUG
-    debug(r, nr, "r after subtraction and trimming");
+        debug(r, nr, "r after subtraction and trimming");
 #endif
-    /* ---------------------------------- */
-    if(r[1] == 0 && i < nx) nr = 0;
+        /* ---------------------------------- */
+        if(r[1] == 0 && i < nx) nr = 0;
     }
 
-if(rmndr)
+    if(rmndr)
     {
-    q = malloc((nr + 1) * sizeof(int));
-    memcpy((void *)q, (void *) r, (nr + 1) * sizeof(int));
-    q[0] = x[0]; /* set sign */
-    *nq = nr;
+        q = malloc((nr + 1) * sizeof(int));
+        memcpy((void *)q, (void *) r, (nr + 1) * sizeof(int));
+        q[0] = x[0]; /* set sign */
+        *nq = nr;
     }
-else
+    else
     {
-    ptr = malloc((sq + 1) * sizeof(int));
-    memcpy((void *)ptr, (void *)q, (sq + 1) * sizeof(int));
-    q = ptr;
-    q[0] = *x * *y;
-    *nq = sq;
+        ptr = malloc((sq + 1) * sizeof(int));
+        memcpy((void *)ptr, (void *)q, (sq + 1) * sizeof(int));
+        q = ptr;
+        q[0] = *x * *y;
+        *nq = sq;
     }     
-return(q);
+    return(q);
 }
 
 
 int cmpAbsBigint(int * x, int nx, int * y, int ny)
 {
-int cmp, i;
+    int cmp, i;
 
-cmp = nx - ny;
-if(cmp == 0)
+    cmp = nx - ny;
+    if(cmp == 0)
     {
-    for(i = 1; i <= nx; i++)
+        for(i = 1; i <= nx; i++)
         {
-        if(x[i] > y[i]) return(1);
-        if(x[i] < y[i]) return(-1);
+            if(x[i] > y[i]) return(1);
+            if(x[i] < y[i]) return(-1);
         }
-    return(0);
+        return(0);
     }
 
-return (cmp > 0) ? 1 : -1;
+    return (cmp > 0) ? 1 : -1;
 }
 
 int cmpBigint(int * x, int nx, int * y, int ny)
 {
-int cmp;
+    int cmp;
 
 /* make sure 0 == -0 */
-if(nx == 1 && ny == 1 && x[1] == 0 && y[1] == 0)
-    return(0);
+    if(nx == 1 && ny == 1 && x[1] == 0 && y[1] == 0)
+        return(0);
 
-if(*x > *y) return(1);
-if(*x < *y) return(-1);
+    if(*x > *y) return(1);
+    if(*x < *y) return(-1);
 
 /* signs are both 1,1 or -1, -1 */
-cmp = cmpAbsBigint(x, nx, y, ny);
+    cmp = cmpAbsBigint(x, nx, y, ny);
 
-return(cmp * *x);
+    return(cmp * *x);
 }
 
 /* biggest  int64  9 223372036 854775807
@@ -4383,61 +4383,61 @@ return(cmp * *x);
 
 INT64 bigintToInt64(CELL * cell)
 {
-INT64 num;
-int * numPtr;
-int  i;
+    INT64 num;
+    int * numPtr;
+    int  i;
 
-int maxInt[4] = {1, 9, 223372036, 854775807};
-int minInt[4] = {-1, 9, 223372036, 854775808};
+    int maxInt[4] = {1, 9, 223372036, 854775807};
+    int minInt[4] = {-1, 9, 223372036, 854775808};
 
-numPtr = (int *)(UINT)cell->contents;
-if(cmpBigint((int *)(UINT)cell->contents, cell->aux -1, maxInt, 3) == 1 ||
-            cmpBigint((int *)(UINT)cell->contents, cell->aux - 1, minInt, 3) == -1)
-    errorProc(ERR_NUMBER_OUT_OF_RANGE);
+    numPtr = (int *)(UINT)cell->contents;
+    if(cmpBigint((int *)(UINT)cell->contents, cell->aux -1, maxInt, 3) == 1 ||
+       cmpBigint((int *)(UINT)cell->contents, cell->aux - 1, minInt, 3) == -1)
+        errorProc(ERR_NUMBER_OUT_OF_RANGE);
 
-num = numPtr[1];
-for(i = 2; i < cell->aux; i++)
-    num = num * BIGINT_BASE + numPtr[i];
+    num = numPtr[1];
+    for(i = 2; i < cell->aux; i++)
+        num = num * BIGINT_BASE + numPtr[i];
 
-num = num * numPtr[0];
+    num = num * numPtr[0];
 
-return(num);
+    return(num);
 }
 
 int * intToBigint(INT64 num, int * len)
 {
-int idx = 1;
-int * digit;
+    int idx = 1;
+    int * digit;
 
-digit = malloc(4 * sizeof(int));
+    digit = malloc(4 * sizeof(int));
 
-if(num < 0)
+    if(num < 0)
     {
-    digit[0] = -1;
-    num = -num;
+        digit[0] = -1;
+        num = -num;
     }
-else
-    digit[0] = 1;
+    else
+        digit[0] = 1;
 
-if(num > BIGINT_BASE2)
+    if(num > BIGINT_BASE2)
     {
-    digit[idx] = (int)(num / BIGINT_BASE2);
-    num = num - digit[idx] * BIGINT_BASE2;
-    idx++;
-    }
-
-if(num > BIGINT_BASE)
-    {
-    digit[idx] =(int)(num / BIGINT_BASE);
-    num = num - digit[idx] * BIGINT_BASE;
-    idx++;
+        digit[idx] = (int)(num / BIGINT_BASE2);
+        num = num - digit[idx] * BIGINT_BASE2;
+        idx++;
     }
 
-digit[idx] = num;
+    if(num > BIGINT_BASE)
+    {
+        digit[idx] =(int)(num / BIGINT_BASE);
+        num = num - digit[idx] * BIGINT_BASE;
+        idx++;
+    }
 
-*len = idx;
+    digit[idx] = num;
 
-return(digit);
+    *len = idx;
+
+    return(digit);
 }
 
 
@@ -4445,92 +4445,92 @@ return(digit);
    does not check for overflow */
 double bigintToAbsFloat(int * numPtr, int n)
 {
-double value;
-int i;
+    double value;
+    int i;
 
-value = numPtr[1];
-for(i = 2; i <= n; i++)
-    value = value * BIGINT_BASE + numPtr[i];
+    value = numPtr[1];
+    for(i = 2; i <= n; i++)
+        value = value * BIGINT_BASE + numPtr[i];
 
-return(value);
+    return(value);
 }
 
 
 double bigintCellToFloat(CELL * cell)
 {
-double value;
-int * numPtr;
-int i;
+    double value;
+    int * numPtr;
+    int i;
 
-numPtr = (int *)(UINT)cell->contents;
-value = numPtr[1];
-for(i = 2; i < cell->aux; i++)
+    numPtr = (int *)(UINT)cell->contents;
+    value = numPtr[1];
+    for(i = 2; i < cell->aux; i++)
     {
-    value = value * BIGINT_BASE + numPtr[i];
-    if( value > 1.797693134862301e308)
-        return(1/0.0);
+        value = value * BIGINT_BASE + numPtr[i];
+        if( value > 1.797693134862301e308)
+            return(1/0.0);
     }
 
-value *= numPtr[0];
+    value *= numPtr[0];
 
-return(value);
+    return(value);
 }
 
 int * floatToBigint(double fnum, int * len)
 {
-int decDigits, bigDigits;
-int inum, i, sign;
-int * numPtr;
+    int decDigits, bigDigits;
+    int inum, i, sign;
+    int * numPtr;
 
 #ifdef SOLARIS
-        if(isnan(fnum - fnum))
+    if(isnan(fnum - fnum))
 #else
         if(isinf(fnum))
 #endif
-    errorProcExt2(ERR_CANNOT_CONVERT, stuffFloat(fnum));
+            errorProcExt2(ERR_CANNOT_CONVERT, stuffFloat(fnum));
         
-sign = fnum < 0 ? -1 : 1;
-fnum = fnum * sign;
+    sign = fnum < 0 ? -1 : 1;
+    fnum = fnum * sign;
 
 /* account for rounding errors */
-if(fnum > 1.797693134862301e308)
-    fnum = 1.797693134862301e308;
+    if(fnum > 1.797693134862301e308)
+        fnum = 1.797693134862301e308;
     
-decDigits = log(fnum) / log(10) + 1;
-if(decDigits <= 0) 
+    decDigits = log(fnum) / log(10) + 1;
+    if(decDigits <= 0) 
     {
-    numPtr = calloc(2, sizeof(int));
-    numPtr[0] = 1;
-    *len = 1;
+        numPtr = calloc(2, sizeof(int));
+        numPtr[0] = 1;
+        *len = 1;
+        return(numPtr);
+    }
+
+    bigDigits = ((decDigits - 1) / 9) + 1;
+    *len = bigDigits;
+    numPtr = calloc(bigDigits + 3, sizeof(int)); 
+    numPtr[0] = sign;
+    for(i = 1; i <= 3; i++)
+    {
+        inum = fnum / pow(1000000000, (bigDigits - i));
+        numPtr[i] = inum;
+        fnum = fnum - (INT64)inum * pow(1000000000, (bigDigits - i));
+    }
+
     return(numPtr);
-    }
-
-bigDigits = ((decDigits - 1) / 9) + 1;
-*len = bigDigits;
-numPtr = calloc(bigDigits + 3, sizeof(int)); 
-numPtr[0] = sign;
-for(i = 1; i <= 3; i++)
-    {
-    inum = fnum / pow(1000000000, (bigDigits - i));
-    numPtr[i] = inum;
-    fnum = fnum - (INT64)inum * pow(1000000000, (bigDigits - i));
-    }
-
-return(numPtr);
 }
 
 int lengthBigint(int * num, int len)
 {
-int cnt = 0;
-int bigdigit, basediv;
+    int cnt = 0;
+    int bigdigit, basediv;
 
-if((bigdigit = num[1]) == 0) return(1);
+    if((bigdigit = num[1]) == 0) return(1);
 
-basediv = BIGINT_BASE / 10;
-while(bigdigit / basediv == 0)
-    basediv /= 10, cnt++;
+    basediv = BIGINT_BASE / 10;
+    while(bigdigit / basediv == 0)
+        basediv /= 10, cnt++;
 
-return(9 * (len - 1) + 9 - cnt);
+    return(9 * (len - 1) + 9 - cnt);
 }
 #endif
 /* eof */

@@ -154,7 +154,7 @@
 
 
 /* 
-This is for 64bit large file support (LFS),
+   This is for 64bit large file support (LFS),
 */
 #define LFS
 #ifdef LFS
@@ -623,16 +623,16 @@ extern int vasprintf (char **, const char *, va_list);
 /* ---------------------------- standard types ------------------------- */
 
 typedef struct
-	{
+{
 	char *ptr;
 	char *buffer;
 	size_t position;
 	size_t size;
 	int handle;
-	} STREAM;
+} STREAM;
 
 typedef struct tagSYMBOL
-	{
+{
 	int flags;
 	int color;
 	char * name;
@@ -641,30 +641,30 @@ typedef struct tagSYMBOL
 	struct tagSYMBOL * parent;
 	struct tagSYMBOL * left;
 	struct tagSYMBOL * right;   
-	} SYMBOL;
+} SYMBOL;
 
 typedef struct 
-	{
+{
 	UINT type;
 	void * next;
 	UINT aux;
 	UINT contents;
-	} CELL;
+} CELL;
 
 typedef struct
-	{
+{
 	char * name;
 	CELL * (*function)(CELL *);
 	short int flags;
-	} PRIMITIVE;
+} PRIMITIVE;
 
 typedef struct
-    {
+{
     int handle;
     int family;
     FILE * stream;
     void * next;
-    } IO_SESSION;
+} IO_SESSION;
 
 #ifdef FFI
 
@@ -673,12 +673,12 @@ typedef struct
 #define FFI_STRUCT   (3)
 
 typedef struct {
-  SYMBOL *symbol;
-  void *code;
+    SYMBOL *symbol;
+    void *code;
 } ffi_closure_data;
 
 typedef struct
-    {
+{
     char *name;
     void (*func)(void);
     ffi_cif cif;
@@ -687,7 +687,7 @@ typedef struct
     ffi_closure_data *data;
     ffi_type *cstruct;
     short int type;
-    } FFIMPORT;
+} FFIMPORT;
 #endif
 
 /* --------------------------- globals -------------------------------- */

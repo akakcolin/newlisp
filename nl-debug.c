@@ -58,344 +58,344 @@ char footerStr[32] = " s|tep n|ext c|ont q|uit > ";
 #define DEBUG_EXIT "<-"
 
 void openTrace(void)    
-    {
+{
     if(traceFlag) return;
     traceFlag = TRACE_TRUE;
     currentFunc = nilSymbol;
     debugStackIdx = 0;
     debugStack = (UINT *)allocMemory(MAX_CPU_STACK * 2 * sizeof(UINT));
-    }
+}
 
 void closeTrace(void)
-    {
+{
     if(traceFlag & TRACE_PRINT_EVAL) 
         close(tracePrintDevice);
     traceFlag = 0;
     if(debugStack) free(debugStack);
     debugStack = NULL;
-    }
+}
 
 #ifdef DEBUGGER
 CELL * p_debug(CELL * params)
 {
-CELL * result;
+    CELL * result;
 
-openTrace();
-traceFlag |= TRACE_IN_DEBUG;
-result = copyCell(evaluateExpression(params));
-closeTrace();
+    openTrace();
+    traceFlag |= TRACE_IN_DEBUG;
+    result = copyCell(evaluateExpression(params));
+    closeTrace();
 
-return(result);
+    return(result);
 }
 #endif
 
 
 CELL * p_trace(CELL * params)
 {
-if(params != nilCell)
+    if(params != nilCell)
     {
-    params = evaluateExpression(params);
-    if(isNumber(params->type))
+        params = evaluateExpression(params);
+        if(isNumber(params->type))
         {
-        traceFlag |= TRACE_PRINT_EVAL;
-        getIntegerExt(params, &tracePrintDevice, FALSE);
-        return(stuffInteger(tracePrintDevice));
+            traceFlag |= TRACE_PRINT_EVAL;
+            getIntegerExt(params, &tracePrintDevice, FALSE);
+            return(stuffInteger(tracePrintDevice));
         }
-    if(!isNil(params))
+        if(!isNil(params))
         {
-        openTrace();
-        traceFlag |= TRACE_IN_DEBUG;
+            openTrace();
+            traceFlag |= TRACE_IN_DEBUG;
         }
-    else
-        closeTrace();
+        else
+            closeTrace();
     }
 
-if(traceFlag & TRACE_IN_DEBUG) return(trueCell);
-if(traceFlag & TRACE_PRINT_EVAL) return(stuffInteger(tracePrintDevice));
-return(nilCell);
+    if(traceFlag & TRACE_IN_DEBUG) return(trueCell);
+    if(traceFlag & TRACE_PRINT_EVAL) return(stuffInteger(tracePrintDevice));
+    return(nilCell);
 }
 
 #ifdef DEBUGGER
 CELL * p_traceHighlight(CELL * params)
 {
-char * pre, * post, * header, * footer;
+    char * pre, * post, * header, * footer;
 
-params = getString(params, &pre);
-params = getString(params, &post);
+    params = getString(params, &pre);
+    params = getString(params, &post);
 
-strncpy(debugPreStr, pre, 8);
-strncpy(debugPostStr, post, 8);
-*(debugPreStr + 7) = 0;
-*(debugPostStr + 7) = 0;
+    strncpy(debugPreStr, pre, 8);
+    strncpy(debugPostStr, post, 8);
+    *(debugPreStr + 7) = 0;
+    *(debugPostStr + 7) = 0;
 
-if(params != nilCell)
+    if(params != nilCell)
     {
-    params = getString(params, &header);
-    strncpy(headerStr, header, 16);
+        params = getString(params, &header);
+        strncpy(headerStr, header, 16);
     }
 
-if(params != nilCell)
+    if(params != nilCell)
     {
-    getString(params, &footer);
-    strncpy(footerStr, footer, 32);
+        getString(params, &footer);
+        strncpy(footerStr, footer, 32);
     }
 
-*(headerStr + 15) = 0;
-*(footerStr + 31) = 0;
+    *(headerStr + 15) = 0;
+    *(footerStr + 31) = 0;
 
-return(trueCell);
+    return(trueCell);
 }
 #endif /* DEBUGGER */
 
 void tracePrint(char * label, CELL * expr)
 {
-UINT printDeviceSave = printDevice;
+    UINT printDeviceSave = printDevice;
 
-printDevice = tracePrintDevice;
-varPrintf(OUT_DEVICE, "%d %s: ", recursionCount, label);
-if(expr) printCell(expr, TRUE, OUT_DEVICE);
-varPrintf(OUT_DEVICE, "%s", "\n");
-printDevice = printDeviceSave;
+    printDevice = tracePrintDevice;
+    varPrintf(OUT_DEVICE, "%d %s: ", recursionCount, label);
+    if(expr) printCell(expr, TRUE, OUT_DEVICE);
+    varPrintf(OUT_DEVICE, "%s", "\n");
+    printDevice = printDeviceSave;
 }
 
 void traceEntry(CELL * cell, CELL * pCell, CELL * args)
 {
-if(traceFlag & (TRACE_IN_ENTRY | TRACE_IN_EXIT | TRACE_DEBUG_NEXT)) return;
-traceFlag |= TRACE_IN_ENTRY;
+    if(traceFlag & (TRACE_IN_ENTRY | TRACE_IN_EXIT | TRACE_DEBUG_NEXT)) return;
+    traceFlag |= TRACE_IN_ENTRY;
 
 #ifdef DEBUGGER
-int defaultFuncFlag = FALSE;
+    int defaultFuncFlag = FALSE;
 #endif
 
-if(traceFlag & TRACE_SIGNAL)
+    if(traceFlag & TRACE_SIGNAL)
     {
-    traceFlag &= ~TRACE_SIGNAL;
-    executeSymbol(symHandler[currentSignal - 1], stuffInteger(currentSignal), NULL);
-    traceFlag &= ~TRACE_IN_ENTRY;
-    return;
+        traceFlag &= ~TRACE_SIGNAL;
+        executeSymbol(symHandler[currentSignal - 1], stuffInteger(currentSignal), NULL);
+        traceFlag &= ~TRACE_IN_ENTRY;
+        return;
     }
 
-if(traceFlag & TRACE_SIGINT)
+    if(traceFlag & TRACE_SIGINT)
     {
-    traceFlag &= ~TRACE_SIGINT;
-    longjmp(errorJump, ERR_USER_RESET);
+        traceFlag &= ~TRACE_SIGINT;
+        longjmp(errorJump, ERR_USER_RESET);
     }
     
-if(traceFlag & TRACE_TIMER)
+    if(traceFlag & TRACE_TIMER)
     {
-    traceFlag &= ~TRACE_TIMER;
-    executeSymbol(timerEvent, NULL, NULL);
-    traceFlag &= ~TRACE_IN_ENTRY;
-    return;
+        traceFlag &= ~TRACE_TIMER;
+        executeSymbol(timerEvent, NULL, NULL);
+        traceFlag &= ~TRACE_IN_ENTRY;
+        return;
     }
 
-if(traceFlag & TRACE_PRINT_EVAL)
+    if(traceFlag & TRACE_PRINT_EVAL)
     {
-    if(cell->type == CELL_EXPRESSION) tracePrint("entry", cell);
-    traceFlag &= ~TRACE_IN_ENTRY;
-    return;
+        if(cell->type == CELL_EXPRESSION) tracePrint("entry", cell);
+        traceFlag &= ~TRACE_IN_ENTRY;
+        return;
     }
 
 #ifdef DEBUGGER
-if(debugStackIdx > 1)
+    if(debugStackIdx > 1)
     {
-    if(debugPrintFunction(cell))
-        getDebuggerInput(DEBUG_ENTRY);
-    if(!traceFlag) return;
+        if(debugPrintFunction(cell))
+            getDebuggerInput(DEBUG_ENTRY);
+        if(!traceFlag) return;
     }
 
-if(traceFlag & TRACE_DEBUG_NEXT)
+    if(traceFlag & TRACE_DEBUG_NEXT)
     {
-    traceFlag &= ~TRACE_IN_ENTRY;
-    return;
+        traceFlag &= ~TRACE_IN_ENTRY;
+        return;
     }
 
-if(pCell->type == CELL_CONTEXT)
+    if(pCell->type == CELL_CONTEXT)
     {
-    defaultFuncFlag = TRUE;
-    currentFunc = translateCreateSymbol(
+        defaultFuncFlag = TRUE;
+        currentFunc = translateCreateSymbol(
             ((SYMBOL*)pCell->contents)->name,
             CELL_NIL,
             (SYMBOL*)pCell->contents,
             TRUE);
 
-    pCell = (CELL *)currentFunc->contents;
+        pCell = (CELL *)currentFunc->contents;
     }
 
-if((pCell->type == CELL_LAMBDA || pCell->type == CELL_FEXPR)
-    && args->type == CELL_SYMBOL)
+    if((pCell->type == CELL_LAMBDA || pCell->type == CELL_FEXPR)
+       && args->type == CELL_SYMBOL)
     {
-    if(debugStackIdx == 0) /* startup */
-        traceFlag &= ~TRACE_DEBUG_NEXT;
+        if(debugStackIdx == 0) /* startup */
+            traceFlag &= ~TRACE_DEBUG_NEXT;
     
-    if(!defaultFuncFlag)
-        currentFunc = (SYMBOL *)args->contents; 
-    pushDebugStack(recursionCount);
-    pushDebugStack(currentFunc);
+        if(!defaultFuncFlag)
+            currentFunc = (SYMBOL *)args->contents; 
+        pushDebugStack(recursionCount);
+        pushDebugStack(currentFunc);
     }
 #endif /* no_DEBUG */
 
-traceFlag &= ~TRACE_IN_ENTRY;
+    traceFlag &= ~TRACE_IN_ENTRY;
 }
 
 
 void traceExit(CELL * result, CELL * cell, CELL * pCell, CELL * args)
 {
-if(traceFlag & (TRACE_IN_ENTRY | TRACE_IN_EXIT | TRACE_SIGNAL | TRACE_SIGINT | TRACE_TIMER)) return;
+    if(traceFlag & (TRACE_IN_ENTRY | TRACE_IN_EXIT | TRACE_SIGNAL | TRACE_SIGINT | TRACE_TIMER)) return;
 
-if(traceFlag == TRACE_PRINT_EVAL)
+    if(traceFlag == TRACE_PRINT_EVAL)
     {
-    tracePrint("exit", result);
-    return;
+        tracePrint("exit", result);
+        return;
     }
 
-traceFlag |= TRACE_IN_EXIT;
+    traceFlag |= TRACE_IN_EXIT;
 
 #ifdef DEBUGGER
-if(traceFlag & TRACE_DEBUG_NEXT)
+    if(traceFlag & TRACE_DEBUG_NEXT)
     {
-    if(currentLevel >= recursionCount)
-        traceFlag &= ~TRACE_DEBUG_NEXT;
-    else 
+        if(currentLevel >= recursionCount)
+            traceFlag &= ~TRACE_DEBUG_NEXT;
+        else 
         {
-        traceFlag &= ~TRACE_IN_EXIT;
-        return;
+            traceFlag &= ~TRACE_IN_EXIT;
+            return;
         }
     }
 
-if( (pCell->type == CELL_LAMBDA || pCell->type == CELL_FEXPR)
+    if( (pCell->type == CELL_LAMBDA || pCell->type == CELL_FEXPR)
         && args->type == CELL_SYMBOL)
     {
-    if((UINT)recursionCount == *(debugStack + debugStackIdx - 2) )
+        if((UINT)recursionCount == *(debugStack + debugStackIdx - 2) )
         {
-        debugStackIdx -= 2;
-        if(debugStackIdx > 0)
-            currentFunc = (SYMBOL *)*(debugStack + debugStackIdx - 1);
-        if(debugStackIdx == 0)
-            traceFlag &= ~TRACE_DEBUG_NEXT;
+            debugStackIdx -= 2;
+            if(debugStackIdx > 0)
+                currentFunc = (SYMBOL *)*(debugStack + debugStackIdx - 1);
+            if(debugStackIdx == 0)
+                traceFlag &= ~TRACE_DEBUG_NEXT;
         }
     }
 
-if(debugPrintFunction(cell))
+    if(debugPrintFunction(cell))
     {
-    varPrintf(OUT_CONSOLE, "\nRESULT: ");
-    printCell(result, TRUE, OUT_CONSOLE);
-    varPrintf(OUT_CONSOLE, "\n");
+        varPrintf(OUT_CONSOLE, "\nRESULT: ");
+        printCell(result, TRUE, OUT_CONSOLE);
+        varPrintf(OUT_CONSOLE, "\n");
 
-    if(debugStackIdx > 0)
+        if(debugStackIdx > 0)
         {
-        getDebuggerInput(DEBUG_EXIT);
-        if(!traceFlag) return;
+            getDebuggerInput(DEBUG_EXIT);
+            if(!traceFlag) return;
         }
     }
 
-if(traceFlag & TRACE_DEBUG_NEXT)
-    currentLevel = recursionCount;
+    if(traceFlag & TRACE_DEBUG_NEXT)
+        currentLevel = recursionCount;
 #endif /* DEBUGGER */
 
-traceFlag &= ~TRACE_IN_EXIT;
+    traceFlag &= ~TRACE_IN_EXIT;
 }
 
 #ifdef DEBUGGER
 void getDebuggerInput(char * msg)
 {
-char command[MAX_LINE];
-char * context;
-jmp_buf errorJumpSave;
-UINT * resultStackIdxSave;
-SYMBOL * contextSave;
+    char command[MAX_LINE];
+    char * context;
+    jmp_buf errorJumpSave;
+    UINT * resultStackIdxSave;
+    SYMBOL * contextSave;
 
-while(TRUE)
+    while(TRUE)
     {
 
-    if(currentContext != mainContext)
-        context = currentContext->name;
-    else context = "";
+        if(currentContext != mainContext)
+            context = currentContext->name;
+        else context = "";
 
 
-    if(!evalSilent)
-        varPrintf(OUT_CONSOLE, "\n[%s %d %s]%s", msg, recursionCount, context, footerStr);
-    else evalSilent = FALSE;
+        if(!evalSilent)
+            varPrintf(OUT_CONSOLE, "\n[%s %d %s]%s", msg, recursionCount, context, footerStr);
+        else evalSilent = FALSE;
 
-    if(fgets(command, MAX_LINE - 1, IOchannel) == NULL)
-        fatalError(ERR_IO_ERROR, 0, 0);
+        if(fgets(command, MAX_LINE - 1, IOchannel) == NULL)
+            fatalError(ERR_IO_ERROR, 0, 0);
 
-    /* client and server could have different line-termination */
-    if(*(command + 1) == '\n' || *(command + 1) == '\r')
+        /* client and server could have different line-termination */
+        if(*(command + 1) == '\n' || *(command + 1) == '\r')
         {
-        if(*command == 'n')
+            if(*command == 'n')
             {
-            traceFlag |= TRACE_DEBUG_NEXT;
-            currentLevel = recursionCount;
-            break;
+                traceFlag |= TRACE_DEBUG_NEXT;
+                currentLevel = recursionCount;
+                break;
             }
-        if(*command == 's')
+            if(*command == 's')
             {
-            traceFlag &= ~TRACE_DEBUG_NEXT;
-            break;
+                traceFlag &= ~TRACE_DEBUG_NEXT;
+                break;
             }
-        if(*command == 'q')
+            if(*command == 'q')
             {
-            closeTrace();
-            longjmp(errorJump, ERR_USER_RESET);
+                closeTrace();
+                longjmp(errorJump, ERR_USER_RESET);
             }
-        if(*command == 'c')
+            if(*command == 'c')
             {
-            closeTrace();
-            break;
+                closeTrace();
+                break;
             }
         }
 
-    resultStackIdxSave = resultStackIdx;
-    memcpy(errorJumpSave, errorJump, sizeof(jmp_buf));
-    contextSave = currentContext;
-    currentContext = currentFunc->context;
-    if(setjmp(errorJump))
+        resultStackIdxSave = resultStackIdx;
+        memcpy(errorJumpSave, errorJump, sizeof(jmp_buf));
+        contextSave = currentContext;
+        currentContext = currentFunc->context;
+        if(setjmp(errorJump))
         {
-        cleanupResults(resultStackIdxSave);
-        goto DEBUG_EVAL_END;
+            cleanupResults(resultStackIdxSave);
+            goto DEBUG_EVAL_END;
         }
 
-    executeCommandLine(command, OUT_CONSOLE, NULL); 
+        executeCommandLine(command, OUT_CONSOLE, NULL); 
 
-    DEBUG_EVAL_END:
-    currentContext = contextSave;
-    memcpy(errorJump, errorJumpSave, sizeof(jmp_buf));
+DEBUG_EVAL_END:
+        currentContext = contextSave;
+        memcpy(errorJump, errorJumpSave, sizeof(jmp_buf));
     }
 }
 
 
 int debugPrintFunction(CELL * cell)
 {
-int preLen, pos = 0;
-char * strPos;
+    int preLen, pos = 0;
+    char * strPos;
 
-STREAM strStream = {NULL, NULL, 0, 0, 0};
+    STREAM strStream = {NULL, NULL, 0, 0, 0};
 
-if(currentFunc == nilSymbol) return FALSE;
+    if(currentFunc == nilSymbol) return FALSE;
 
-debugPrintCell = cell;
-openStrStream(&strStream, MAX_STRING, 0);
-printSymbol(currentFunc, (UINT)&strStream);
-debugPrintCell = NULL;
+    debugPrintCell = cell;
+    openStrStream(&strStream, MAX_STRING, 0);
+    printSymbol(currentFunc, (UINT)&strStream);
+    debugPrintCell = NULL;
 
-strPos = strstr(strStream.buffer, debugPreStr);
-if(strPos != NULL)
+    strPos = strstr(strStream.buffer, debugPreStr);
+    if(strPos != NULL)
     {
-    preLen = strlen(debugPreStr);
-    while(*(strPos + preLen + pos) <= ' ' && *(strPos + preLen + pos) != 0) ++pos;
-    if(pos) /* if there is white space */
+        preLen = strlen(debugPreStr);
+        while(*(strPos + preLen + pos) <= ' ' && *(strPos + preLen + pos) != 0) ++pos;
+        if(pos) /* if there is white space */
         {
-        /* swap whitespace and debugPreStr */
-        strncpy(strPos, strPos + preLen, pos);
-        strncpy(strPos + pos, debugPreStr, preLen);
+            /* swap whitespace and debugPreStr */
+            strncpy(strPos, strPos + preLen, pos);
+            strncpy(strPos + pos, debugPreStr, preLen);
         }
-    varPrintf(OUT_CONSOLE, "%s", headerStr);
-    varPrintf(OUT_CONSOLE, "%s", strStream.buffer);
+        varPrintf(OUT_CONSOLE, "%s", headerStr);
+        varPrintf(OUT_CONSOLE, "%s", strStream.buffer);
     }
 
-closeStrStream(&strStream);
-return (strPos != NULL);
+    closeStrStream(&strStream);
+    return (strPos != NULL);
 }
 
 #endif /* DEBUGGER */
