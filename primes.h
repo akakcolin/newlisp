@@ -481,11 +481,9 @@ PRIMITIVE primitive[] =
     {"triu",                   p_tril, 0}, // lower triangle  of an array
     {"vander",                 p_vander, 0}, // create vandermonde matrix
     {"mat",                    p_mat, 0},
-    {"mat-from-str",           p_bmat, 0},
- 
-
-       
-
+    {"mat-from-str",           p_bmat, 0},    
+    {"double-matrix",           p_double_matrix, 0},
+           
     
     // Discrete fourier Transform
     {"hfft",                   p_hfft, 0},
@@ -520,6 +518,7 @@ PRIMITIVE primitive[] =
     {"linalg-inv", p_lgInv, 0},
     {"linalg-pinv", p_lgPinv, 0},
 
+    
     // mathematical functions
     {"degress", p_degress, 0},
     {"radians", p_radians, 0},
@@ -545,7 +544,19 @@ PRIMITIVE primitive[] =
     
     {"complex?", p_isComplex, 0},
     {"array_equal", p_arrayEqual, 0},
-    {"graycode",   p_graycode, 0}, // return graycode 
+    {"graycode",   p_graycode, 0}, // return graycode
+
+    
+    {"copy-matrix", p_copy_matrix, 0}, // return a fresh copy of tensor m
+    {"contiguousp", p_contiguousp, 0}, // return true if the elements of m are contiguous in memory
+    
+    {"eigen-symm", p_eigen_symm, 0}, // eigenvalues of real symmetric matrix
+    {"eigen-symmv", p_eigen_symmv, 0}, // eigenvalues and eigenvectors of real symmetric matrix
+    {"eigen-symm", p_eigen_symm, 0}, // eigenvalues of real symmetric matrix
+    {"eigen-herm", p_eigen_herm, 0}, // eigenvalues of complex hermitian matrix
+    {"eigen-hermv", p_eigen_hermv, 0}, // eigenvalues and eigenvectors of complex hermitian matrix
+    
+        
 #endif
 
 
