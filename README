@@ -1,3 +1,12 @@
+newlisp是一个很优秀的lisp实现，
+个人在这个基础上加了一些分子晶体计算需要的函数，用于个人目的
+目前处于toy状态
+
+Todo:
+ [] 添加读写xyz文件
+ [] 添加dftb计算接口
+
+
 newLISP version 10.x.x for LINUX, FreeBSD, macOS Solaris and Windows
 ====================================================================
 
