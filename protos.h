@@ -540,8 +540,8 @@ char * netLastError(void);
 char * parsePackFormat(char * format, int * length, int * type);
 char * prompt(void);
 char * readStreamText(STREAM * stream, int * size);
-char * replaceString (char * keyStr, size_t keyLen, char * buff, size_t buffLen, CELL * exprCell, 
-    					UINT * cnt, int options, size_t * newLen);
+char * replaceString (char * keyStr, size_t keyLen, char * buff, size_t buffLen, CELL * exprCell,
+                        UINT * cnt, int options, size_t * newLen);
 #ifdef WINDOWS
 char * win_fgets(char * buffer, int  size, FILE * fPtr);
 char * win_realpath(const char * filepath, char * realpath);
@@ -724,6 +724,14 @@ int rmdir_utf16(const char* filename8);
 int unlink_utf16(const char* filename8);
 _WDIR * opendir_utf16(const char* dirname8);
 #endif
+
+#ifdef ATOM
+CELL *p_specieNumber(CELL *params);
+CELL *p_num2Specie(CELL *params);
+CELL *p_atommass(CELL *params);
+CELL *p_atomvdwRadii(CELL *params);
+#endif
+
 #endif
 
 /* eof */

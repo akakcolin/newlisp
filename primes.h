@@ -1,20 +1,15 @@
 /* primes.h - table of primitives
-
     Copyright (C) 2015 Lutz Mueller
-
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 */
 
 #ifndef PRIMES_H
@@ -40,7 +35,7 @@ PRIMITIVE primitive[] =
 	{"dotree",		p_dotree,	2},
 	{"case",		p_case,		2},
 	{"cond",		p_condition,1},
-	{"begin",		p_evalBlock,1}, 
+	{"begin",		p_evalBlock,1},
 	{"and",			p_and,		0},
 	{"if",			p_if,		2},
 	{"if-not",		p_ifNot,	2},
@@ -89,7 +84,7 @@ PRIMITIVE primitive[] =
 	{"set-ref-all",	p_setRefAll,0x400},
 	{"select",		p_select,	0},
 	{"collect",		p_collect,	0},
-	{"swap",		p_swap,		0}, 
+	{"swap",		p_swap,		0},
 	{"slice",		p_slice,	0},
 	{"length",		p_length,	0},
 	{"find",		p_find,		0},
@@ -216,7 +211,7 @@ PRIMITIVE primitive[] =
 	{"bind",		p_bind,			0x400},
 	{"uuid",		p_uuid,			0},
 	{"gcd",			p_gcd,			0},
-	
+
 	/* ------------ string ops ------------- */
 	{"eval-string",	p_evalString,	0},
 #ifdef EMSCRIPTEN
@@ -303,7 +298,7 @@ PRIMITIVE primitive[] =
 	{"destroy",		p_destroyProcess, 0},
 	{"exec",        p_exec,     0},
 	{"process",		p_process,	0},
-	{"pipe",		p_pipe,		0}, 
+	{"pipe",		p_pipe,		0},
 #ifndef NO_FORK
 	{"fork",		p_fork,		0},
 	{"wait-pid",	p_waitpid,	0},
@@ -327,7 +322,7 @@ PRIMITIVE primitive[] =
 
 #endif /* ifndef EMSCRIPTEN */
 
-	
+
 	/* ---------  system --------- */
 	{"set-locale",		p_setLocale,	0},
 	{"for-all",		p_forAll,	0},
@@ -464,170 +459,20 @@ PRIMITIVE primitive[] =
 	{"net-interface",	p_netInterface, 0},
  	{"net-error",		p_netLastError,	0},
 #endif
-
-    /* -------------numpy like-----------*/
-#ifdef num
-
-    {"arange",                 p_arange, 0},
-    {"zeros",                  p_zeros, 0},
-    {"eye",                    p_eye, 0},
-    {"identity",               p_identity, 0},
-    {"ones",                   p_ones, 0},
-    {"full",                   p_full, 0},
-    {"mgrid",                  p_mgrid, 0}, // np.mgrid
-
-    {"diag",                   p_diag, 0},
-    {"tril",                   p_tril, 0}, // lower triangle  of an array
-    {"triu",                   p_tril, 0}, // lower triangle  of an array
-    {"vander",                 p_vander, 0}, // create vandermonde matrix
-    {"mat",                    p_mat, 0},
-    {"mat-from-str",           p_bmat, 0},    
-    {"double-matrix",           p_double_matrix, 0},
-           
-    
-    // Discrete fourier Transform
-    {"hfft",                   p_hfft, 0},
-    {"ihfft",                  p_ihfft, 0},
-    
-    {"fft2",                   p_fft2, 0},
-    {"ifft2",                   p_ifft2, 0},
-
-    // linear algebra
-    {"dot", p_dot, 0},
-    {"inner", p_inner, 0},
-    {"outer", p_outer, 0},
-    {"vdot", p_vdot, 0},
-    {"matmul",                 p_matmul, 0},
-    {"kron",                   p_kron, 0},    
-    {"matrix_power", p_matrixPower, 0},
-    {"tensordot", p_tensordot, 0},
-    {"einsum",                 p_einsum, 0},
-    {"einsum-path", p_einsumPath, 0},
-    {"linalg-svd", p_svd, 0},
-    {"linalg-qr",  p_qr, 0},
-    {"linalg-cholesky", p_cholesky, 0},
-    {"linalg-eig", p_eig, 0},
-    {"linalg-eigh", p_eigh, 0},
-    {"linalg-eigvals", p_eigvals, 0},
-    {"linalg-eigvalsh", p_eigvalsh, 0},
-    {"linalg-norm", p_lgNorm, 0},
-    {"matrix-rank", p_matRank, 0},
-    {"trace", p_trace, 0},
-    {"linalg-solve", p_lgSolve, 0},
-    {"linalg-lstsq", p_lgLstsq, 0},
-    {"linalg-inv", p_lgInv, 0},
-    {"linalg-pinv", p_lgPinv, 0},
-
-    
-    // mathematical functions
-    {"degress", p_degress, 0},
-    {"radians", p_radians, 0},
-    {"rad2deg", p_rad2deg, 0},
-    {"deg2rad", p_deg2rad, 0},
-    {"around", p_around, 0},
-    {"rounds",  p_round, 0},
-
-    {"lcm",    p_lcm, 0}, // return the lowest common multiple
-
-    // complex numbers
-    {"angle", p_angle, 0},
-    {"real", p_real, 0},
-    {"imag", p_imag, 0},
-    {"conj", p_conj, 0},
-    {"conjugate", p_conjugate, 0},
-
-    {"cbrt", p_cbrt, 0}, // return cube-root of an array
-    {"square", p_square, 0}, // return square of an array
-    {"absolute", p_absolute, 0},
-    {"fabs", p_fabs, 0},
-    // logic functions
-    
-    {"complex?", p_isComplex, 0},
-    {"array_equal", p_arrayEqual, 0},
-    {"graycode",   p_graycode, 0}, // return graycode
-
-    
-    {"copy-matrix", p_copy_matrix, 0}, // return a fresh copy of tensor m
-    {"contiguousp", p_contiguousp, 0}, // return true if the elements of m are contiguous in memory
-    
-    {"eigen-symm", p_eigen_symm, 0}, // eigenvalues of real symmetric matrix
-    {"eigen-symmv", p_eigen_symmv, 0}, // eigenvalues and eigenvectors of real symmetric matrix
-    {"eigen-symm", p_eigen_symm, 0}, // eigenvalues of real symmetric matrix
-    {"eigen-herm", p_eigen_herm, 0}, // eigenvalues of complex hermitian matrix
-    {"eigen-hermv", p_eigen_hermv, 0}, // eigenvalues and eigenvectors of complex hermitian matrix
-    
-        
-#endif
-
-
-#ifdef PANDAS
-    {"read-csv", p_readcsv, 0},
-    {"to-csv", p_tocsv, 0},
-    {"read-excel", p_readexcel, 0},
-    {"to-excel", p_toexcel, 0},
-    {"read-msgpack", p_readmsgpack, 0},
-    {"to-msgpack", p_tomsgpack, 0},
-    
-#endif
-    
     /* ------------- atom ------------ */
 #ifdef ATOM
-    {"specie-masss",           p_specieMass, 0},    // atom mass
-    {"specie-names",           p_specieName, 0},
-    {"specie-numbers",         p_specieNumber, 0},
-    {"specie-magmon",          p_specieMagmon, 0},
-    {"specie-charge",          p_specieCharge, 0},
-    {"specie-position",        p_speciePosition, 0},
-
-    {"chemical-formula",       p_chemicalFormula,0},
-
-    {"unit-vector",            p_unitVector, 0},
-    {"get-angle",                   p_getAngle, 0},
-    {"structure-distance",     p_structDist, 0},    // get distance two structure Frobenius norm of the spatical distance between all coordiantes
-    {"wrap-positions",         p_wrapPositions, 0},
-    {"get-atom-layers",        p_getLayers, 0},
-    {"find-mic",               p_findMic, 0},  // finde mini-image represetnto f vector(s) D
-    {"lattice-vector",         p_latticeVector, 0},
-    {"reciprocal-lattice-vector", p_reciprocalCell, 0}
-    {"abc-to-lattice",         p_abctolattice, 0},
-    {"lattice-to-abc",         p_latticetoabc, 0},
-    {"coords",                 p_coords, 0},
-    {"pbc",                    p_pbc, 0},
-
-    {"rotate-atoms",           p_rotateAtoms, 0},
-    {"get-dihedral",           p_getDihedral, 0},
-    {"set-dihedral",           p_setDihedral, 0},
-    {"rattle-atoms",           p_rattleAtoms, 0},   // randomly displace atoms
-    {"listofformat",           p_listofformat, 0},
-    {"listinformat",           p_listinformat, 0},
-    {"quicksort",              p_quicksort, 0},
-    {"packsort",               p_packsort, 0},
-
-    /* --------------structure---------------*/
-    {"create-cell",            p_createCell, 0},
-    {"create-struct"          p_createStruc, 0},
-    
-    /* ------------- space group ----------------- */
-    {"sg-num-to-name",         p_sg_numGetName, 0}, // return the name of a space group (Hermann-Mauguin symbol)
-    {"sg-num-to-patn",         p_sg_numGetPatn, 0}, // patterson space group number
-    {"sg-num-to-symnum",       p_sg_numGetSymnum, 0}, // get number of sym op
-    {"sg-num-to-symop",        p_sg_numGetSymop, 0},  // get a specific symm operation string
-    {"sg-num-to-symops",       p_sg_numGetSymops, 0}, // get all symmetry operation strings
-    {"sg-name-to-num",         p_sg_nameGetNum, 0},
-    {"sg-name-to-patn",        p_sg_nameGetNum, 0},
-    {"sg-name-to-symnum",      p_sg_nameGetNum, 0},
-    {"sg-name-to-symop",       p_sg_nameGetNum, 0},
-    {"sg-name-to-symops",      p_sg_nameGetNum, 0},
-
-    /* --------------*/
-    /* ------------mode---------------*/
-    {"rdf-xyz",               p_rdfxyz, 0 },    // compute rdf
-    {"bfgs",                  p_bfgs, 0},
-    {"kp-to-monkhorst-pack",  p_kp2MonkhorstPack, 0},
-    {"dft-calculator",        p_dftCalculator, 0},
+    {"specie-mass",           p_atommass, 0},    // atom mass
+    {"specie-vdwradii",           p_atomvdwRadii, 0},    // atom mass
+    {"specie-name",         p_num2Specie, 0},
+    {"specie-number",           p_specieNumber, 0},
 #endif
 
 	{NULL,NULL,0},
 };
 
 #endif /* PRIMES_H */
+CELL *p_specieNumber(CELL *params);
+CELL *p_num2Specie(CELL *params);
+CELL *p_atommass(CELL *params);
+CELL *p_atomvdwRadii(CELL *params);
+#
