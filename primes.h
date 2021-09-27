@@ -465,14 +465,12 @@ PRIMITIVE primitive[] =
     {"specie-vdwradii",           p_atomvdwRadii, 0},    // atom mass
     {"specie-name",         p_num2Specie, 0},
     {"specie-number",           p_specieNumber, 0},
+    {"molecular-type",           p_specieNumber, 0},
+    /* -- physical unit ---- */
+    {"unit-codata-2018", p_unitname, 0},
 #endif
 
 	{NULL,NULL,0},
 };
 
 #endif /* PRIMES_H */
-CELL *p_specieNumber(CELL *params);
-CELL *p_num2Specie(CELL *params);
-CELL *p_atommass(CELL *params);
-CELL *p_atomvdwRadii(CELL *params);
-#

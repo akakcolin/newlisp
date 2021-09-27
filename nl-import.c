@@ -1,6 +1,6 @@
 /* nl-import.c --- shared library interface for newLISP
 
-    Copyright (C) 2016 Lutz Mueller
+    Copyright (C) 2020 Lutz Mueller
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -565,7 +565,8 @@ if(ffiCell != nilCell)
         free(ffi->data);
         return(errorProcExt(ERR_FFI_PREP_FAILED,nilCell));
         }
-    result = ffi_prep_closure_loc(ffi->clos, &ffi->cif, ffi_trampoline, ffi->data, ffi->code);
+    result = ffi_prep_closure_loc(ffi->clos, &ffi->cif, ffi_trampoline, 
+				ffi->data, ffi->code);
     if(result != FFI_OK)
         {
         free(ffi->data);
@@ -579,7 +580,8 @@ if(ffiCell != nilCell)
         return(errorProcExt(ERR_FFI_PREP_FAILED, stuffSymbol(sPtr)));
         }
     ffi->clos = closure;
-    if((result = ffi_prep_closure(closure, &ffi->cif, ffi_trampoline, ffi->data)) != FFI_OK)
+    if((result = ffi_prep_closure_loc(closure, &ffi->cif, 
+				ffi_trampoline, ffi->data, ffi->code)) != FFI_OK)
         {
         free(ffi->data);
         munmap(closure, sizeof(closure));

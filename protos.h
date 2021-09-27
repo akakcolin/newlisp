@@ -730,6 +730,7 @@ CELL *p_specieNumber(CELL *params);
 CELL *p_num2Specie(CELL *params);
 CELL *p_atommass(CELL *params);
 CELL *p_atomvdwRadii(CELL *params);
+CELL *p_unitname(CELL *params);
 #endif
 
 #endif

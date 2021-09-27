@@ -20,7 +20,7 @@
 #ifndef NEWLISP_H
 #define NEWLISP_H
 
-/* Take out bigger, less used code portions.  By default these capabilities 
+/* Take out bigger, less used code portions.  By default these capabilities
    are enabled on all shipped binaries. Out-comment definitions to suppress.
    Other capabilities like READLINE, SUPPORT_UTF8 can be en/disabled in
    makefiles.
@@ -29,7 +29,7 @@
 
 #define XML_SUPPORT
 #define BIGINT
-#define KMEANS 
+#define KMEANS
 #define DEBUGGER
 
 
@@ -51,7 +51,7 @@
 #endif
 
 #ifdef ANDROID
-#define NO_SEMAPHORE 
+#define NO_SEMAPHORE
 #endif
 
 #ifdef _BSD
@@ -84,15 +84,15 @@
 #define OSTYPE "Tru64Unix"
 #endif
 
-#ifdef AIX 
-#define OSTYPE "AIX" 
-#endif 
+#ifdef AIX
+#define OSTYPE "AIX"
+#endif
 
 
 #ifdef WINDOWS
 #define OSTYPE "Windows"
 #ifdef NEWLISP64
-#define WIN_64 
+#define WIN_64
 #else
 #define WIN_32
 #endif
@@ -102,11 +102,11 @@
 #define OSTYPE "Cygwin"
 #endif
 
-#ifdef OS2 
-#define OSTYPE "OS/2" 
-#endif 
+#ifdef OS2
+#define OSTYPE "OS/2"
+#endif
 
-/* include -DFFI in your makefile on the compile line 
+/* include -DFFI in your makefile on the compile line
    and -lffi on the link line */
 #ifdef FFI
 
@@ -114,11 +114,11 @@
 #include <ffi/ffi.h>
 #endif
 
-#if defined(WINDOWS)  
-#include "win-ffi.h" 
+#if defined(WINDOWS)
+#include "win-ffi.h"
 #endif
 
-#if defined(LINUX) || defined(_BSD) || defined(KFREEBSD) || defined(CYGWIN) 
+#if defined(LINUX) || defined(_BSD) || defined(KFREEBSD) || defined(CYGWIN)
 #include <ffi.h>
 #endif
 
@@ -153,7 +153,7 @@
 #endif
 
 
-/* 
+/*
 This is for 64bit large file support (LFS),
 */
 #define LFS
@@ -184,7 +184,7 @@ This is for 64bit large file support (LFS),
 #include <dirent.h>
 #include <limits.h>
 
-/* some Linux do UTF-8 but do not have wcsftime() 
+/* some Linux do UTF-8 but do not have wcsftime()
    buggy in some GCC, i.e. MinGW and Solaris
 */
 
@@ -231,8 +231,8 @@ This is for 64bit large file support (LFS),
 #endif
 
 #ifdef OS2
-#define vasprintf my_vasprintf 
-#define MY_VASPRINTF 
+#define vasprintf my_vasprintf
+#define MY_VASPRINTF
 #define NO_SPAWN
 #define NO_FORK
 #define NO_SHARE
@@ -245,8 +245,8 @@ This is for 64bit large file support (LFS),
 #endif
 
 #if defined(SOLARIS) && defined(SPARC)
-#define setenv my_setenv 
-#define MY_SETENV 
+#define setenv my_setenv
+#define MY_SETENV
 #endif
 
 #ifdef WINDOWS
@@ -274,7 +274,7 @@ This is for 64bit large file support (LFS),
 #define ftell ftello64
 #define getpid GetCurrentProcessId
 
-#ifndef SUPPORT_UTF8 
+#ifndef SUPPORT_UTF8
 #define mkdir  _mkdir
 #define rmdir  _rmdir
 #define lstat stat
@@ -283,7 +283,7 @@ This is for 64bit large file support (LFS),
 #define realpath win_realpath
 
 /* WINDOWS UTF16 support for file paths */
-#ifdef SUPPORT_UTF8 
+#ifdef SUPPORT_UTF8
 #define USE_WIN_UTF16PATH
 #define rename rename_utf16
 #define open open_utf16
@@ -317,7 +317,7 @@ This is for 64bit large file support (LFS),
 #include <inttypes.h>
 
 #define UINT   uintptr_t  /* either 32-bit on ILP32 or 64-bit on LP64,LLP64 */
-#define INT    intptr_t   /* replaces 'long' which stayed 32-bit on Windows LLP64 */   
+#define INT    intptr_t   /* replaces 'long' which stayed 32-bit on Windows LLP64 */
 
 #define INT16  int16_t
 #define INT64  int64_t
@@ -325,7 +325,7 @@ This is for 64bit large file support (LFS),
 
 #define MAX_LONG INTPTR_MAX
 
-#define CONNECT_TIMEOUT 10000 
+#define CONNECT_TIMEOUT 10000
 
 #define pushEnvironment(A) (*(envStackIdx++) = (UINT)(A))
 #define popEnvironment() (*(--envStackIdx))
@@ -341,7 +341,7 @@ This is for 64bit large file support (LFS),
 #define MY_INT64_MAX (((long long int)0x7FFFFFFF << 32) | 0xFFFFFFFF)
 #define TRUE 1
 #define FALSE 0
-  
+
 #define MAX_STRING 2048 /* buffer length */
 #define MAX_LINE 256 /* buffer length */
 /* following limits are only for parsing */
@@ -356,7 +356,7 @@ This is for 64bit large file support (LFS),
 #define MAX_BLOCK 4095
 #define MAX_URL_LEN 255 /* strlen() */
 
-#define MAX_REGEX_EXP 16 
+#define MAX_REGEX_EXP 16
 
 /* token types */
 #define TKN_ERROR -1
@@ -429,6 +429,7 @@ This is for 64bit large file support (LFS),
 #define CELL_FEXPR (13 | ENVELOPE_TYPE_MASK | LIST_TYPE_MASK | EVAL_SELF_TYPE_MASK)
 #define CELL_ARRAY (14 | ENVELOPE_TYPE_MASK | EVAL_SELF_TYPE_MASK)
 #define CELL_DYN_SYMBOL (15 | SYMBOL_TYPE_MASK)
+#define CELL_MOLECULAR (16 | ENVELOPE_TYPE_MASK | EVAL_SELF_TYPE_MASK)
 #define CELL_FREE 0xFF
 
 /* cell type classes */
@@ -618,7 +619,7 @@ This is for 64bit large file support (LFS),
 #define SET_CONSTANT 2
 #define SET_DEFINE 3
 
-extern int vasprintf (char **, const char *, va_list); 
+extern int vasprintf (char **, const char *, va_list);
 
 /* ---------------------------- standard types ------------------------- */
 
@@ -636,14 +637,14 @@ typedef struct tagSYMBOL
 	int flags;
 	int color;
 	char * name;
-	UINT contents; 
+	UINT contents;
 	struct tagSYMBOL * context;
 	struct tagSYMBOL * parent;
 	struct tagSYMBOL * left;
-	struct tagSYMBOL * right;   
+	struct tagSYMBOL * right;
 	} SYMBOL;
 
-typedef struct 
+typedef struct
 	{
 	UINT type;
 	void * next;

@@ -197,3 +197,61 @@ CELL * p_atomvdwRadii(CELL * param){
   radii= get_pte_vdw_radius (idx);
   return (stuffFloat(radii));
 }
+
+
+int get_unit_idx(char *label)
+{
+  int i;
+  char atom[3];
+  // zap string
+  atom[0] = atom[1] = atom[2] ='\0';
+
+  if(label !=NULL){
+    atom[0] = toupper((int) label[0]);
+    atom[1] = tolower((int) label[1]);
+  }
+  if(isdigit(atom[1]) || atom[1]=='_') atom[1] = (char) 0;
+
+  for(i=0; i<112; i++){ // 112 is big enough
+    if((pte_label[i][0] == atom[0]) && (pte_label[i][1] == atom[1])) return i;
+  }
+  return 0;
+}
+
+double get_unit_value(int idx){
+{
+    if ((idx < 1) || (idx >= 112)) return pte_vdw_radius[0];
+
+#if 1
+    /* Replace with Hydrogen radius with an "all-atom" radius */
+    if (idx == 1)
+      return 1.0;    /* H  */
+#else
+    /* Replace with old VMD atom radii values */
+    switch (idx) {
+      case  1: return 1.0;    /* H  */
+      case  6: return 1.5;    /* C  */
+      case  7: return 1.4;    /* N  */
+      case  8: return 1.3;    /* O  */
+      case  9: return 1.2;    /* F  */
+      case 15: return 1.5;    /* P  */
+      case 16: return 1.9;    /* S  */
+    }
+#endif
+
+    return pte_vdw_radius[idx];
+}
+}
+
+CELL * p_unitname(CELL *param){
+    double unit;
+    char *label;
+    int idx = 0;
+    size_t labelLen;
+    if(param->type == CELL_STRING){
+        getStringSize( param, &label, &labelLen, TRUE);
+        idx = get_unit_idx(label);
+    }
+    unit = get_unit_value(idx);
+    return (stuffFloat(unit));
+}
